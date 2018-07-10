@@ -1,0 +1,3 @@
+<?php
+exec('./livestream.py');
+?>
