@@ -37,10 +37,13 @@
             $x++;
           }
         }
+        fclose($file);
 
         $file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "a") or die("Unable to open file!");
-        $strtowrite = PHP_EOL . 'network={' . PHP_EOL . 
-        file_put_contents($file, $person, FILE_APPEND
+        $strtowrite = PHP_EOL . 'network={' . PHP_EOL . '    ssid="' . $psk . '"' . PHP_EOL . '    psk="' . $psk . '"' . PHP_EOL . '    id_str="AP' . $x . '"' . PHP_EOL . '}';
+        fwrite($file, $strtowrite) or die("Unable to write file!");
+        fclose($file);
+        echo 'New WiFi Network Added!';
     }
     
     function test_input($data) {
