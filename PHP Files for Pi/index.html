@@ -29,16 +29,9 @@
                 }
                 a.send();
             });
-	    $('#restartbutton').click(function(){
+	    $('#newwifibutton').click(function(){
                 var a = new XMLHttpRequest();
-                a.open("GET","reboot.php");
-                a.onreadystatechange=function(){
-                    if(a.readyState==4){
-                        if(a.status == 200){
-                        }
-                        else alert("HTTP ERROR");
-                    }
-                }
+                a.open("GET","addwifi.php");
                 a.send();
             });
         });
@@ -61,7 +54,6 @@
   <body>
     <button id="startbutton">Start Livestream</button>
     <button id="stopbutton">Stop Livestream</button>
-    <a href="addwifi.php"><button id="newwifibutton">Add WiFi Network</button></a>
-    <button id="restartbutton">Reboot Streambox</button>
+    <button id="newwifibutton">Add WiFi Network</button>
   </body>
 </html>
