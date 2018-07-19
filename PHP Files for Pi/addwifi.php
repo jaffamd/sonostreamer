@@ -33,7 +33,7 @@
       fwrite($file, $strtowrite) or die("Unable to write file!");
       fclose($file);
       
-      $file = fopen("/etc/network/interfaces", "a") or die('Unable to open network//interfaces');
+      $file = fopen("/etc/network/interfaces", "a") or die('Unable to open network/interfaces');
       $strtowritenetwork = PHP_EOL . 'iface AP' . $x . ' inet dhcp';
       fclose($file);
       
