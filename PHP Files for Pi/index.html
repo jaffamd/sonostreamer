@@ -30,9 +30,7 @@
                 a.send();
             });
 	    $('#newwifibutton').click(function(){
-                var a = new XMLHttpRequest();
-                a.open("GET","addwifi.php");
-                a.send();
+                window.location.href = "addwifi.php";
             });
         });
     </script>
