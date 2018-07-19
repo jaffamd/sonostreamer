@@ -38,8 +38,7 @@
       fwrite($file, $strtowritenetwork) or die("Unable to write to network interfaces file");
       fclose($file);
       
-      echo 'New WiFi Network Added!';
-      echo 'Please reboot Streambox now';
+      header("Location: 192.168.10.1/index.html");
     }
   }
   
