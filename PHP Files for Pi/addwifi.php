@@ -35,6 +35,7 @@
       
       $file = fopen("/etc/network/interfaces", "a") or die('Unable to open network/interfaces');
       $strtowritenetwork = PHP_EOL . 'iface AP' . $x . ' inet dhcp';
+      fwrite($file, $strtowritenetwork) or die("Unable to write to network interfaces file");
       fclose($file);
       
       echo 'New WiFi Network Added!';
