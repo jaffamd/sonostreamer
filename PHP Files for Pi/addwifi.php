@@ -39,6 +39,7 @@
       
       echo 'New WiFi Network Added!';
       echo 'Please reboot Streambox now';
+    }
   }
   
   function test_input($data) {
