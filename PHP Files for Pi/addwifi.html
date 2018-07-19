@@ -3,12 +3,15 @@
 <head>
   <meta charset="utf-8">
   <title>Add WiFi Network Details</title>
+  <style>
+    .error {color: #FF0000;}
+  </style>
 </head>
 
 <body>
-  <form action="addwifi.php" method="post">
-  WiFi Network Name: <input type="text" name="ssid"><br>
-  WiFi Network Password: <input type="text" name="psk"><br>
+  <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
+  WiFi Network Name: <input type="text" name="ssid"><span class="error">* <?php echo $nameErr;?></span><br><br>
+  WiFi Network Password: <input type="text" name="psk"><span class="error">* <?php echo $nameErr;?></span><br><br>
   <input type="submit">
   </form>
 </body>
