@@ -29,6 +29,18 @@
                 }
                 a.send();
             });
+	    $('#restartbutton').click(function(){
+                var a = new XMLHttpRequest();
+                a.open("GET","reboot.php");
+                a.onreadystatechange=function(){
+                    if(a.readyState==4){
+                        if(a.status == 200){
+                        }
+                        else alert("HTTP ERROR");
+                    }
+                }
+                a.send();
+            });
         });
     </script>
     <title>POCUS-Pi</title>
@@ -50,5 +62,6 @@
     <button id="startbutton">Start Livestream</button>
     <button id="stopbutton">Stop Livestream</button>
     <a href="addwifi.html"><button id="newwifibutton">Add WiFi Network</button></a>
+    <button id="restartbutton">Reboot Streambox</button>
   </body>
 </html>
