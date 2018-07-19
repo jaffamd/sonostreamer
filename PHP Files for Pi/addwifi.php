@@ -38,7 +38,7 @@
       fwrite($file, $strtowritenetwork) or die("Unable to write to network interfaces file");
       fclose($file);
       
-      header("Location: 192.168.10.1/index.html");
+      header("Location: index.html");
     }
   }
   
