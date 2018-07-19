@@ -25,7 +25,7 @@
       }
 
       if (($ssid != "") && ($psk != "")) {
-        $file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "r") or die("Unable to open file!");
+        $file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "r") or die("Unable to open wpa_supplicant.conf");
         
         $x=1;
         $lastAP = "";
@@ -39,11 +39,17 @@
         }
         fclose($file);
 
-        $file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "a") or die("Unable to open file!");
+        $file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "a") or die("Unable to open wpa_supplicant.conf");
         $strtowrite = PHP_EOL . 'network={' . PHP_EOL . '    ssid="' . $psk . '"' . PHP_EOL . '    psk="' . $psk . '"' . PHP_EOL . '    id_str="AP' . $x . '"' . PHP_EOL . '}';
         fwrite($file, $strtowrite) or die("Unable to write file!");
         fclose($file);
+        
+        $file = fopen("/etc/network/interfaces", "a") or die('Unable to open network//interfaces');
+        $strtowritenetwork = PHP_EOL . 'iface AP' . $x . ' inet dhcp';
+        fclose($file);
+        
         echo 'New WiFi Network Added!';
+        echo 'Please reboot Streambox now';
     }
     
     function test_input($data) {
