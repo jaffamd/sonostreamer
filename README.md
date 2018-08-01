@@ -141,3 +141,11 @@ Finally, stop the Apache server software that was running by default and start t
 sudo /etc/init.d/apache2 stop
 sudo /usr/local/nginx/sbin/nginx
 ~~~
+
+## Start Streaming
+All that's left to do at this point is to start streaming! Make sure your ultrasound machine is plugged into your capture card, which is plugged into your Streambox, and then power up the Streambox. Once the POCUS-Pi WiFi network shows up, connect your phone or computer to the network, open a web browser (Chrome should definitely work; others may be spotty), and navigate to `192.168.10.1`. You should see several buttons at this point. Start the livestream by pressing or clicking the "Start Livestream" button.
+
+### View the stream
+The easiest way to view the livestream is with VLC, a free video player that you can [download here](https://www.videolan.org/vlc/index.html). Open up VLC, click File in the menu bar and click Open Network. This will open a dialog box with an input field. In that field, enter:
+`rtmp://SERVER_DOMAIN_NAME.com/livestream`
+There will be a delay of a few seconds while the videostream buffers, and then your video should start playing automatically. When you're done streaming, make sure to hit the "Stop Livestream" button on the Streambox's webpage.
