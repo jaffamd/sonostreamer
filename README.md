@@ -86,4 +86,58 @@ ssh pi@192.168.10.1
 ## Set up the server
 One of the cheapest and easiest ways to set up a server is through a service like [Digital Ocean](digitalocean.com). You can create a basic server with most of the software already installed for as little as $5/month. This guide will be assuming you make a "droplet" (mini-server) on Digital Ocean.
 
-# STAY TUNED FOR INSTRUCTIONS ON SETTING UP A STREAMING SERVER
+After creating an account with Digital Ocean, create a droplet with a pre-built LAMP stack, which stands for Linux-Apache-MySQL-PHP. If you're hosting your own streaming server locally (my first one was a nearly-decade-old Macbook Pro sitting on my dining room table), find [a tutorial like this one](https://code.tutsplus.com/tutorials/how-to-set-up-a-dedicated-web-server-for-free--net-2043), which is the one I followed to install my first server.
+
+Once your server is up and running, you can use `ssh` to login just as you did with the Raspberry Pi above. For security purposes, if you are logged in as `root`, you should create a separate username and give it root privileges (but be sure to use different passwords for the two user accounts):
+
+`adduser USERNAME`
+
+`usermod -aG sudo USERNAME`
+
+Check the sudo privileges:
+
+`su USERNAME`
+
+`sudo ls -la /root`
+>Enter the new user's password (not the password for the root user). Note that this command will not work if sudo privileges were not properly granted.
+
+`exit`
+>This will return you to the root user's account
+
+`logout`
+>This will log you out of the root user's account. At this point, you should `ssh` back into the server under the new non-`root` username.
+
+### Install the NGINX-RTMP server software
+The protocol we'll use to livestream video is called RTMP (Real-Time Messaging Protocol). Apache is not built to accept RTMP videostreams, but a modified version of the NGINX (pronounced 'engine ex') server works just fine. While logged into the server over SSH, enter the following series of commands:
+
+~~~
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt upgrade
+sudo apt-get install gcc libpcre3 libpcre3-dev libssl-dev build-essential -y
+wget http://nginx.org/download/nginx-1.14.0.tar.gz
+git clone https://github.com/winshining/nginx-http-flv-module.git
+tar -xzf nginx-1.14.0.tar.gz
+sudo rm nginx-1.14.0.tar.gz
+cd nginx-1.14.0
+./configure --add-module=../nginx-http-flv-module
+make
+sudo make install
+sudo ufw allow 1935
+~~~
+
+Once that is all done, you'll need to replace the NGINX configuration file with one that supports our livestreaming application.
+
+~~~
+sudo nano /usr/local/nginx/conf/nginx.conf
+~~~
+
+Hold down `ctrl+k` until all the lines are deleted, and then paste in the contents of the new configuration file (found in this repository under `streambox/Server Files/nginx.conf`). Press `ctrl+o` followed by `enter` to save and `ctrl+x` to quit the nano text editor.
+>NOTE: There are a few places near the end of the configuration file that contain a domain name (ex: github.com). I've replaced these with SERVER_DOMAIN_NAME. I strongly recommend you purchase a domain name on a site like [GoDaddy](godaddy.com) and replace the SERVER_DOMAIN_NAME with your own domain name. I have not tested this system with just an IP address rather than a domain name and cannot guarantee that it will work out.
+
+Finally, stop the Apache server software that was running by default and start the NGINX server software instead:
+
+~~~
+sudo /etc/init.d/apache2 stop
+sudo /usr/local/nginx/sbin/nginx
+~~~
