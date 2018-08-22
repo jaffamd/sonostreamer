@@ -29,7 +29,7 @@
       fclose($file);
 
       $file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "a") or die("Unable to open wpa_supplicant.conf");
-      $strtowrite = PHP_EOL . 'network={' . PHP_EOL . '    ssid="' . $psk . '"' . PHP_EOL . '    psk="' . $psk . '"' . PHP_EOL . '    id_str="AP' . $x . '"' . PHP_EOL . '}';
+      $strtowrite = PHP_EOL . 'network={' . PHP_EOL . '    ssid="' . $ssid . '"' . PHP_EOL . '    psk="' . $psk . '"' . PHP_EOL . '    id_str="AP' . $x . '"' . PHP_EOL . '}';
       fwrite($file, $strtowrite) or die("Unable to write file!");
       fclose($file);
       
