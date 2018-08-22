@@ -29,11 +29,14 @@
                 }
                 a.send();
             });
+	    $('#newwifibutton').click(function(){
+                window.location.href = "addwifi.php";
+            });
         });
     </script>
     <title>POCUS-Pi</title>
     <style>
-			button {
+	button {
             margin: auto;
             width: 50%;
             max-width: 400px;
@@ -49,5 +52,6 @@
   <body>
     <button id="startbutton">Start Livestream</button>
     <button id="stopbutton">Stop Livestream</button>
+    <button id="newwifibutton">Add WiFi Network</button>
   </body>
 </html>
