@@ -86,6 +86,7 @@ Finally, change the permissions and ownership of the files with the following co
 sudo usermod -a -G video www-data
 sudo chown www-data: /var/www/html/index.html
 sudo chmod 644 /var/www/html/index.html
+sudo chown pi: /var/www/html/livestream.py
 sudo chmod 755 /var/www/html/livestream.py
 sudo chown www-data: /var/www/html/*.php
 sudo chmod 644 /var/www/html/*.php
