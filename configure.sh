@@ -9,9 +9,9 @@ usage() {
     cat 1>&2 <<EOF
 Configures simultaneous AP and Managed Mode Wifi on Raspberry Pi
 USAGE:
-    rpi-wifi -c <client_password> [<client_password>] -a <ap_ssid> [<ap_password>]
+    rpi-wifi -a <ap_ssid> [<ap_password>] -c <client_password> [<client_password>]
 
-    rpi-wifi -c MyWifiSSID mywifipass -a MyAP myappass
+    rpi-wifi -a MyAP myappass -c MyWifiSSID mywifipass
 PARAMETERS:
     -a, --ap      	AP SSID & password
     -c, --client	Client SSID & password
