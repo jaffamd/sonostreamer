@@ -1,38 +1,20 @@
 #!/bin/sh
-# The script configures simultaneous AP and Managed Mode Wifi on Raspberry Pi Zero W (should also work on Raspberry Pi 3)
-# Usage: curl https://gist.githubusercontent.com/lukicdarkoo/6b92d182d37d0a10400060d8344f86e4/raw | sh -s WifiSSID WifiPass APSSID APPass
+# This script configures the SonoConnect Streambox environment on the Raspberry Pi platform
+# Usage: sudo ./configure.sh [you will be prompted to enter the client WiFi info (the existing network) and your desired access point info (the network you are creating)]
 # Licence: GPLv3
-# Author: Darko Lukic <lukicdarkoo@gmail.com>
-# Special thanks to: https://albeec13.github.io/2017/09/26/raspberry-pi-zero-w-simultaneous-ap-and-managed-mode-wifi/
-
-usage() {
-    cat 1>&2 <<EOF
-Configures simultaneous AP and Managed Mode Wifi on Raspberry Pi
-USAGE:
-    rpi-wifi -a <ap_ssid> [<ap_password>] -c <client_password> [<client_password>]
-
-    rpi-wifi -a MyAP myappass -c MyWifiSSID mywifipass
-PARAMETERS:
-    -a, --ap      	AP SSID & password
-    -c, --client	Client SSID & password
-    -i, --ip            AP IP
-FLAGS:
-    -n, --no-internet   Disable IP forwarding
-    -h, --help          Show this help
-EOF
-    exit 0
-}
+# Author: Elias Jaffa (@jaffa_md)
+# Special thanks to: https://albeec13.github.io/2017/09/26/raspberry-pi-zero-w-simultaneous-ap-and-managed-mode-wifi/ and Darko Lukic <lukicdarkoo@gmail.com>
 
 MAC_ADDRESS="$(cat /sys/class/net/wlan0/address)"
-CLIENT_SSID="${1}"
-CLIENT_PASSPHRASE="${2}"
-AP_SSID="${3}"
-AP_PASSPHRASE="${4}"
-
-# Install dependencies
-sudo apt -y update
-sudo apt -y upgrade
-sudo apt -y install dnsmasq dhcpcd hostapd
+echo -n "Enter the existing client SSID you wish to connect to > "
+read CLIENT_SSID
+echo -n "Enter the password of the existing client WiFi > "
+read CLIENT_PASSPHRASE
+echo -n "Enter the name you wish to use for the new access point > "
+read AP_SSID
+echo -n "Enter the password you wish to use for the $AP_SSID access point > "
+read AP_PASSPHRASE
+echo "Beginning configuration........."
 
 # Populate `/etc/udev/rules.d/70-persistent-net.rules`
 sudo bash -c 'cat > /etc/udev/rules.d/70-persistent-net.rules' << EOF
@@ -40,6 +22,14 @@ SUBSYSTEM=="ieee80211", ACTION=="add|change", ATTR{macaddress}=="${MAC_ADDRESS}"
   RUN+="/sbin/iw phy phy0 interface add ap0 type __ap", \
   RUN+="/bin/ip link set ap0 address ${MAC_ADDRESS}"
 EOF
+
+# Install dependencies
+sudo apt -y update
+sudo apt -y upgrade
+sudo apt -y install dnsmasq hostapd #dhcpcd
+# Stop the currently running systems
+#sudo systemctl stop dnsmasq
+#sudo systemctl stop hostapd
 
 # Populate `/etc/dnsmasq.conf`
 sudo bash -c 'cat > /etc/dnsmasq.conf' << EOF
@@ -108,8 +98,12 @@ EOF
 
 # Populate `/bin/start_wifi.sh`
 sudo bash -c 'cat > /bin/start_wifi.sh' << EOF
-echo 'Starting Wifi AP and client...'
-sleep 45
+#!/bin/bash
+echo "Starting wifi......."
+sleep 15
+sudo ifdown --force wlan0
+sudo ifdown --force ap0
+sleep 15
 sudo ifdown --force wlan0
 sudo ifdown --force ap0
 sudo ifup ap0
@@ -117,7 +111,197 @@ sudo ifup wlan0
 sudo sysctl -w net.ipv4.ip_forward=1
 sudo iptables -t nat -A POSTROUTING -s 192.168.10.0/24 ! -d 192.168.10.0/24 -j MASQUERADE
 sudo systemctl restart dnsmasq
+echo "Wifi script finished running"
+ip addr
 EOF
 sudo chmod +x /bin/start_wifi.sh
-crontab -l | { cat; echo "@reboot /bin/start_wifi.sh"; } | crontab -
-echo "Wifi configuration is finished! Please reboot your Raspberry Pi to apply changes..."
+
+# Modify '/etc/rc.local' to run the start_wifi script on reboot
+sudo bash -c 'cat > /etc/rc.local' << EOF
+#!/bin/sh -e
+/bin/start_wifi.sh &
+exit 0
+EOF
+
+sudo update-rc.d dhcpcd disable
+echo "Wifi configuration is finished!"
+
+echo "Installing additional dependencies.........."
+sudo apt-get install patchutils libproc-processtable-perl -y
+sudo apt-get install ffmpeg -y
+sudo apt-get install git -y
+sudo apt-get install apache2 -y
+sudo apt-get install php libapache2-mod-php -y
+
+# Remove index.html and create a new one
+sudo rm /var/www/html/index.html
+
+sudo bash -c 'cat > /var/www/html/index.html' << EOF
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+        \$(document).ready(function(){
+            \$('#startbutton').click(function(){
+                var a = new XMLHttpRequest();
+                a.open("GET","startstream.php");
+                a.onreadystatechange=function(){
+                    if(a.readyState==4){
+                        if(a.status == 200){
+                        }
+                        else alert("HTTP ERROR");
+                    }
+                }
+                a.send();
+            });
+            \$('#stopbutton').click(function(){
+                var a = new XMLHttpRequest();
+                a.open("GET","stopstream.php");
+                a.onreadystatechange=function(){
+                    if(a.readyState==4){
+                        if(a.status == 200){
+                        }
+                        else alert("HTTP ERROR");
+                    }
+                }
+                a.send();
+            });
+	    \$('#newwifibutton').click(function(){
+                window.location.href = "addwifi.php";
+            });
+        });
+    </script>
+    <title>POCUS-Pi</title>
+    <style>
+	button {
+            margin: auto;
+            width: 50%;
+            max-width: 400px;
+            font-size: 24px;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            box-shadow: 6px 6px 3px grey;
+            display: block;
+        }
+    </style>
+  </head>
+  <body>
+    <button id="startbutton">Start Livestream</button>
+    <button id="stopbutton">Stop Livestream</button>
+    <button id="newwifibutton">Add WiFi Network</button>
+  </body>
+</html>
+EOF
+
+# Create PHP script files
+sudo bash -c 'cat > /var/www/html/addwifi.php' << EOF
+<?php
+  \$ssid = \$psk = "";
+  if (\$_SERVER["REQUEST_METHOD"] == "POST") {
+    if (empty(\$_POST["ssid"])) {
+      \$nameErr = "Network name is required";
+    } else {
+      \$ssid = test_input(\$_POST["ssid"]);
+    }
+
+    if (empty(\$_POST["psk"])) {
+      \$nameErr = "Password is required";
+    } else {
+      \$psk = test_input(\$_POST["psk"]);
+    }
+
+    if ((\$ssid != "") && (\$psk != "")) {
+      \$file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "r") or die("Unable to open wpa_supplicant.conf");
+
+      \$x=1;
+      \$lastAP = "";
+
+      while (!feof(\$file)) {
+        \$line = fgets(\$file);
+        if (strpos(\$line, "id_str") !== false) {
+          \$lastAP = "AP" . \$x;
+          \$x++;
+        }
+      }
+      fclose(\$file);
+
+      \$file = fopen("/etc/wpa_supplicant/wpa_supplicant.conf", "a") or die("Unable to open wpa_supplicant.conf");
+      \$strtowrite = PHP_EOL . 'network={' . PHP_EOL . '    ssid="' . \$ssid . '"' . PHP_EOL . '    psk="' . \$psk . '"' . PHP_EOL . '    id_str="AP' . \$x . '"' . PHP_EOL . '}';
+      fwrite(\$file, \$strtowrite) or die("Unable to write file!");
+      fclose(\$file);
+
+      \$file = fopen("/etc/network/interfaces", "a") or die('Unable to open network/interfaces');
+      \$strtowritenetwork = PHP_EOL . 'iface AP' . \$x . ' inet dhcp';
+      fwrite(\$file, \$strtowritenetwork) or die("Unable to write to network interfaces file");
+      fclose(\$file);
+
+      header("Location: index.html");
+    }
+  }
+
+  function test_input(\$data) {
+    \$data = trim(\$data);
+    \$data = stripslashes(\$data);
+    \$data = htmlspecialchars(\$data);
+    return \$data;
+  }
+?>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Add WiFi Network Details</title>
+  <style>
+    .error {color: #FF0000;}
+  </style>
+</head>
+
+<body>
+  <form action="<?php echo htmlspecialchars(\$_SERVER["PHP_SELF"]);?>" method="post">
+  WiFi Network Name: <input type="text" name="ssid"><span class="error">* <?php echo \$nameErr;?></span><br><br>
+  WiFi Network Password: <input type="text" name="psk"><span class="error">* <?php echo \$nameErr;?></span><br><br>
+  <input type="submit">
+  </form>
+</body>
+</html>
+EOF
+
+sudo bash -c 'cat > /var/www/html/startstream.php' << EOF
+<?php
+exec('./livestream.py');
+?>
+EOF
+
+sudo bash -c 'cat > /var/www/html/stopstream.php' << EOF
+<?php
+exec("killall ffmpeg");
+?>
+EOF
+
+sudo bash -c 'cat > /var/www/html/livestream.py' << EOF
+#!/usr/bin/python
+import os
+# Set input to S-video
+# Comment out or use -i 0 for composite video
+os.system('v4l2-ctl -d /dev/video0 -i 1')
+os.system('ffmpeg -y -re -f video4linux2 -standard NTSC -i /dev/video0 -c:v h264_omx -an -f flv rtmp://yourwebsitehere.com/livestream')
+EOF
+
+# Change file permissions for the recently created files
+sudo chown -R pi: /var/www/html
+sudo chown www-data: /var/www/html/index.html
+sudo chmod 644 /var/www/html/index.html
+sudo chown pi: /var/www/html/livestream.py
+sudo chmod 755 /var/www/html/livestream.py
+sudo chown www-data: /var/www/html/*.php
+sudo chmod 644 /var/www/html/*.php
+
+# Give the webpage access to the video device
+sudo usermod -a -G video www-data
+
+# Give the user access to the video device
+sudo chmod ugo+rw /dev/video0
+
+echo "System configuration complete. Please reboot your Pi now....."
