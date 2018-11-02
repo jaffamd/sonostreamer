@@ -14,7 +14,8 @@ Start by downloading the latest version of Raspbian, an operating system for the
 
 When the image is done flashing, open any plain text editing software (Notepad on Windows or TextEdit on Mac; avoid "word processors" like Microsoft Word) and save a blank document as "ssh" in the main directory of your microSD card (which should now be called "boot"). Make sure you don't give the "ssh" file an extension, and if it automatically gets the extension ".txt", remove it (if prompted, just choose "use without extension" or something along those lines). After that's done, **open the `configure-streambox.sh` file and fix the deliberate typo near the bottom of the file** by changing the rtmp address from rtmp://YOUR-IP-HERE/live/livestream and substituting in the web address or IP address of your target server. Save the file and then copy it to the same main folder on the "boot" disk. You can now safely eject the microSD card.
 
-Place the SD card in the Raspberry Pi's card slot, then connect your Pi directly to your internet router with an Ethernet cable. **Make sure you also connect your TV capture card to a USB port**. Finally, connect the power cable to the Pi to turn it on. >NOTE: If you have a monitor or TV with an HDMI cable and a USB keyboard, you can avoid the ethernet connection and login to the Pi manually, then connect to the WiFi using the command `sudo raspi-config` and following the prompts.
+Place the SD card in the Raspberry Pi's card slot, then connect your Pi directly to your internet router with an Ethernet cable. **Make sure you also connect your TV capture card to a USB port**. Finally, connect the power cable to the Pi to turn it on.
+>NOTE: If you have a monitor or TV with an HDMI cable and a USB keyboard, you can avoid the ethernet connection and login to the Pi manually, then connect to the WiFi using the command `sudo raspi-config` and following the prompts.
 
 Once the Pi boots up, you should be able to connect by SSH. On Windows, you'll need an SSH program like [PuTTY](https://www.putty.org/). On Mac, just open a terminal and type `ssh pi@raspberrypi.local` - when prompted for a password, enter the default password (`raspberry`).
 
@@ -67,9 +68,11 @@ sudo ./configure-server.sh
 Again, let the script run, and when it's finished, reboot your server with `sudo reboot now`
 
 ## Start Streaming
-All that's left to do at this point is to start streaming! Make sure your ultrasound machine is plugged into your capture card, which is plugged into your Streambox, and then power up the Streambox. Once the POCUS-Pi WiFi network shows up, connect your phone or computer to the network, open a web browser (Chrome should definitely work; others may be spotty), and navigate to `streambox.com`. You should see several buttons at this point. Start the livestream by pressing or clicking the "Start Livestream" button.
+All that's left to do at this point is to start streaming! Make sure your ultrasound machine is plugged into your capture card, which is plugged into your Streambox, and then power up the Streambox. Once the WiFi network shows up, connect your phone or computer to the network, open a web browser (Chrome should definitely work; others may be spotty), and navigate to `streambox.com`. You should see several buttons at this point. Start the livestream by pressing or clicking the "Start Livestream" button.
 
 ### View the stream
 The easiest way to view the livestream is with VLC, a free video player that you can [download here](https://www.videolan.org/vlc/index.html). Open up VLC, click File in the menu bar and click Open Network. This will open a dialog box with an input field. In that field, enter:
-`rtmp://YOUR-IP/livestream/live`
+`rtmp://YOUR-IP/live/livestream`
 There will be a delay of a few seconds while the videostream buffers, and then your video should start playing automatically. When you're done streaming, make sure to hit the "Stop Livestream" button on the Streambox's webpage.
+
+**Update:** With the new server configuration, your streams will automatically save to `/rec`. You can view them after the fact at any time with the new video-on-demand application. Just point the VLC network stream to `rtmp://YOUR-IP/vod/$filename` where $filename is the complete path of the video file ending in `.flv` - log into your server and use the command `ls /rec` to list the saved video filenames.
