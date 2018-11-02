@@ -5,9 +5,9 @@
 # Author: Elias Jaffa (@jaffa_md)
 
 echo "Beginning server configuration........."
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt upgrade
+sudo apt-get -y update
+sudo apt-get -y upgrade
+sudo apt -y upgrade
 
 # Install dependencies
 sudo apt-get install gcc libpcre3 libpcre3-dev libssl-dev build-essential -y
