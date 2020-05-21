@@ -1,4 +1,4 @@
-# SonoConnect Streambox by JaffaMD
+# Sonostreamer by JaffaMD
 
 The SonoConnect Streambox is an open-source hardware platform designed to enable extremely low-cost tele-ultrasound, thus facilitating education and healthcare capacity in the developing world. There are undoubtedly many other uses for a simple and inexpensive video streaming device, so if you'd like to share your thoughts, please get in touch (@jaffa_md on Twitter or by email at globalpocuspartners (a) gmail dot com)!
 
