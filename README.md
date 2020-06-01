@@ -21,7 +21,7 @@ Once the Pi boots up, you should be able to connect by SSH. On Windows, you'll n
 
 Enter the command `passwd` to change the password. Use something secure.
 
-The `configure-streambox .sh` file (linked above) performs the entire configuration and setup process automatically, including updating the existing Raspberry Pi system files, installing the dependencies, setting up the WiFi system for simultaneous AP and client WiFi networks, creating and populating the webpage files for controlling the Streambox's livestreaming capabilities, and setting appropriate file permissions. Simply run the command `sudo /boot/configure.sh`, answer the prompts to enter information regarding client and desired access point network information, sit back, relax, and let the magic of open source software take care of the rest.
+The `configure-streambox.sh` file (linked above) performs the entire configuration and setup process automatically, including updating the existing Raspberry Pi system files, installing the dependencies, setting up the WiFi system for simultaneous AP and client WiFi networks, creating and populating the webpage files for controlling the Streambox's livestreaming capabilities, and setting appropriate file permissions. Simply run the command `sudo /boot/configure.sh`, answer the prompts to enter information regarding client and desired access point network information, sit back, relax, and let the magic of open source software take care of the rest.
 
 Once the setup script is done (yes, it will take a while) you can reboot the Pi with `sudo reboot now`
 Give it a good 5 minutes to reboot and set up again the first time. At some point, you should your new WiFi network show up on your list. If you don't, unplug the Pi and plug it back in to force a second restart. It should work at that point.
@@ -43,26 +43,14 @@ Once your server is up and running, you can use `ssh` to login just as you did w
 
 `usermod -aG sudo USERNAME`
 
-Check the sudo privileges:
-
-`su USERNAME`
-
-`sudo ls -la /root`
->Enter the new user's password (not the password for the root user). Note that this command will not work if sudo privileges were not properly granted.
-
-`exit`
->This will return you to the root user's account
-
 `logout`
->This will log you out of the root user's account. At this point, you should `ssh` back into the server under the new non-`root` username.
+>This will log you out of the root user's account. At this point, you should `ssh` back into the server under the new non-`root` username (e.g. `ssh USERNAME@SERVER-IP-ADDRESS`).
 
 ### Configure the server environment
 The protocol we'll use to livestream video is called RTMP (Real-Time Messaging Protocol). Apache is not built to accept RTMP videostreams, but a modified version of the Nginx (pronounced 'engine ex') server works just fine. While logged into the server over SSH, enter the following series of commands:
 
 ~~~
-sudo wget https://raw.githubusercontent.com/jaffamd/streambox/master/Server%20Files/configure-server.sh
-sudo chmod ugo+x configure-server.sh
-sudo ./configure-server.sh
+curl https://raw.githubusercontent.com/jaffamd/streambox/nodejs-variant/configure-server.sh | sudo bash
 ~~~
 
 Again, let the script run, and when it's finished, reboot your server with `sudo reboot now`

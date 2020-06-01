@@ -1,16 +1,49 @@
 #!/bin/sh
-# This script configures a Ubuntu 16.04 server for use with the SonoConnect Streambox platform
-# Usage: sudo ./configure-server.sh
+# This script configures a Ubuntu server for use with the Sonostreamer platform
 # Licence: GPLv3
 # Author: Elias Jaffa (@jaffa_md)
 
-echo "Beginning server configuration........."
-sudo apt-get -y update
-sudo apt-get -y upgrade
-sudo apt -y upgrade
+#######
+# HELP
+#######
+Help()
+{
+  # Display help text
+  echo "Automatic server setup for the Sonostreamer platform"
+  echo
+  echo "Usage: sudo configure-server | -h"
+  echo
+  echo "Options:"
+  echo
+  echo "-h     Display this help text"
+}
 
-# Install dependencies
-sudo apt-get install gcc libpcre3 libpcre3-dev libssl-dev build-essential -y
+while getopts ":h" option; do
+   case $option in
+      h) # display Help
+        Help
+        exit;;
+      /?) # incorrect option
+        echo "Error: Invalid option"
+        exit;;
+   esac
+done
+
+echo "Beginning server configuration........."
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt upgrade -y
+
+# Install dependencies and utilities
+sudo apt-get install build-essential gcc autoconf automake cmake libtool git -y
+
+# Install ffmpeg
+#sudo apt-get install gcc libpcre3 libpcre3-dev libssl-dev
+wget https://ffmpeg.org/releases/ffmpeg-4.2.1.tar.bz2
+tar -xf ffmpeg-4.2.1.tar.bz2
+rm ffmpeg-4.2.1.tar.bz2
+cd ffmpeg-4.2.1
+
+./configure --enable-gpl --enable-version3 --disable-static --enable-shared --enable-small --enable-avisynth --enable-chromaprint --enable-frei0r --enable-gmp --enable-gnutls --enable-ladspa --enable-libaom --enable-libass --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libjack --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopencore-amrwb --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librsvg --enable-librubberband --enable-librtmp --enable-libshine --enable-libsmbclient --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libtesseract --enable-libtheora --enable-libtwolame --enable-libv4l2 --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libxml2 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-openal --enable-opencl --enable-opengl --enable-libdrm
 
 # Download the modified version of the Nginx server software, compile the source code, and install it
 wget http://nginx.org/download/nginx-1.14.0.tar.gz

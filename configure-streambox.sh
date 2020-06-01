@@ -112,6 +112,8 @@ sudo sysctl -w net.ipv4.ip_forward=1
 sudo iptables -t nat -A POSTROUTING -s 192.168.10.0/24 ! -d 192.168.10.0/24 -j MASQUERADE
 sudo systemctl restart dnsmasq
 echo "Wifi script finished running"
+EXTIP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+echo "External IP address is $EXTIP"
 EOF
 sudo chmod +x /bin/start_wifi.sh
 
@@ -134,6 +136,19 @@ echo "Wifi configuration is finished!"
 
 echo "Installing additional dependencies.........."
 sudo apt-get install ffmpeg -y
+sudo apt-get install nodejs npm -y
+sudo npm install pm2@latest -g
+sudo pm2 startup
+cd /
+sudo mkdir sonoserver
+sudo chown $USER:$USER sonoserver
+cd sonoserver
+npm install express --save
+
+
+
+
+
 sudo apt-get install apache2 -y
 sudo apt-get install php libapache2-mod-php -y
 
