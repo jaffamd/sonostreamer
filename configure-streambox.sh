@@ -136,7 +136,12 @@ echo "Wifi configuration is finished!"
 
 echo "Installing additional dependencies.........."
 sudo apt-get install ffmpeg -y
-sudo apt-get install nodejs npm -y
+
+# Install NodeJS (from NodeSource for the latest version)
+# First, update apt repo to include the NodeSource packages
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+# Now you can actually install the latest version of NodeJS
+sudo apt install -y nodejs
 sudo npm install pm2@latest -g
 sudo pm2 startup
 cd /
@@ -145,18 +150,8 @@ sudo chown $USER:$USER sonoserver
 cd sonoserver
 npm install express --save
 
-
-
-
-
 sudo apt-get install apache2 -y
 sudo apt-get install php libapache2-mod-php -y
-
-# Install NodeJS (from NodeSource for the latest version)
-# First, update apt repo to include the NodeSource packages
-curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-# Now you can actually install the latest version of NodeJS
-sudo apt install -y nodejs
 
 # Remove index.html and create a new one
 sudo rm /var/www/html/index.html
