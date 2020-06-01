@@ -1,20 +1,17 @@
 #!/bin/sh
 # This script configures the SonoConnect Streambox environment on the Raspberry Pi platform
-# Usage: sudo /boot/configure-streambox.sh [you will be prompted to enter the client WiFi info (the existing network) and your desired access point info (the network you are creating)]
+# Usage: sudo /boot/configure-streambox.sh [you will be prompted to enter the client WiFi info (the existing network)
+# and your desired access point info (the network you are creating)]
 # Licence: GPLv3
 # Author: Elias Jaffa (@jaffa_md)
 # Special thanks to: https://albeec13.github.io/2017/09/26/raspberry-pi-zero-w-simultaneous-ap-and-managed-mode-wifi/ and Darko Lukic <lukicdarkoo@gmail.com>
 
 MAC_ADDRESS="$(cat /sys/class/net/wlan0/address)"
-echo -n "Enter the existing WiFi network name (SSID) you wish to connect to > "
-read CLIENT_SSID
-echo -n "Enter the password of the existing WiFi network > "
-read CLIENT_PASSPHRASE
-echo -n "Enter the name you wish to use for the new access point > "
-read AP_SSID
-echo -n "Enter the password you wish to use for the $AP_SSID access point > "
-read AP_PASSPHRASE
+
 echo "Beginning configuration........."
+
+# Pull the user-defined network variables from the filed loaded into the boot folder
+source /boot/config_details.txt
 
 # Populate `/etc/udev/rules.d/70-persistent-net.rules`
 sudo bash -c 'cat > /etc/udev/rules.d/70-persistent-net.rules' << EOF
@@ -23,15 +20,16 @@ SUBSYSTEM=="ieee80211", ACTION=="add|change", ATTR{macaddress}=="${MAC_ADDRESS}"
   RUN+="/bin/ip link set ap0 address ${MAC_ADDRESS}"
 EOF
 
-# Increase GPU memory for better encoding performance
+# Increase GPU memory for (hopefully) better encoding performance
 sudo echo "gpu_mem=512" >> /boot/config.txt
 
-# Install dependencies
+# Update packages and install initial networking dependencies
 sudo apt-get -y update
 sudo apt-get -y upgrade
 sudo apt-get -y install dnsmasq hostapd
 
 # Populate `/etc/dnsmasq.conf`
+# This allows the Pi to act as a router and hand out local IP addresses
 sudo bash -c 'cat > /etc/dnsmasq.conf' << EOF
 interface=lo,ap0
 no-dhcp-interface=lo,wlan0
@@ -43,6 +41,7 @@ dhcp-range=192.168.10.50,192.168.10.150,12h
 EOF
 
 # Populate `/etc/hostapd/hostapd.conf`
+# This defines the specific settings of the access point, including name, password, security, WiFi channel, etc
 sudo bash -c 'cat > /etc/hostapd/hostapd.conf' << EOF
 ctrl_interface=/var/run/hostapd
 ctrl_interface_group=0
@@ -145,28 +144,17 @@ sudo apt install -y nodejs
 sudo npm install pm2@latest -g
 sudo pm2 startup
 cd /
-sudo mkdir sonoserver
-sudo chown $USER:$USER sonoserver
+sudo mkdir sonostreamer
+sudo chown $USER:$USER sonostreamer
 cd sonoserver
 npm install express --save
 
-sudo apt-get install apache2 -y
-sudo apt-get install php libapache2-mod-php -y
-
-# Remove index.html and create a new one
-sudo rm /var/www/html/index.html
-
-# Download jQuery to allow for "offline" use
-cd /var/www/html
-wget http://code.jquery.com/jquery-3.3.1.min.js
-cd ~/
-
-sudo bash -c 'cat > /var/www/html/index.html' << EOF
+sudo bash -c 'cat > /sonostreamer/index.html' << EOF
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <script src="./jquery-3.3.1.min.js"></script>
+    
     <script type="text/javascript">
         \$(document).ready(function(){
             \$('#startbutton').click(function(){
@@ -244,7 +232,13 @@ sudo bash -c 'cat > /var/www/html/index.html' << EOF
     <button id="rebootbutton">Reboot System</button>
     <button id="shutdownbutton">Shutdown System</button>
   </body>
+  <script src="./scripts.js"></script>
 </html>
+EOF
+
+# Create javascript files for index page
+sudo bash -c 'cat > /sonostreamer/scripts.js' << EOF
+
 EOF
 
 # Create PHP script files
