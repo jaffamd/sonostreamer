@@ -1,0 +1,268 @@
+#!/bin/sh
+# This script configures the SonoConnect Streambox environment on the Raspberry Pi platform
+# Licence: GPLv3
+# Author: Elias Jaffa (@jaffa_md)
+
+echo "Beginning configuration........."
+
+# Update packages and install initial networking dependencies
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install hostapd dnsmasq -y
+
+# hostapd service needs to be unmasked before it will work (new issue with Buster)
+sudo systemctl unmask hostapd
+# Disable services to prevent them from automatically starting on boot (script below will control these)
+sudo systemctl disable hostapd
+sudo systemctl disable dnsmasq
+
+# Populate `/etc/hostapd/hostapd.conf`
+# This defines the specific settings of the access point, including name, password, security, WiFi channel, etc
+sudo bash -c 'cat > /etc/hostapd/hostapd.conf' << EOF
+interface=wlan0
+driver=nl80211
+ssid=POCUS-Pi
+hw_mode=g
+channel=8
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=pocuspi01
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP TKIP
+rsn_pairwise=CCMP
+country_code=US
+ieee80211n=1
+ieee80211d=1
+EOF
+
+# Populate `/etc/default/hostapd`
+sudo bash -c 'cat > /etc/default/hostapd' << EOF
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
+EOF
+
+# Populate `/etc/dnsmasq.conf`
+# This allows the Pi to act as a router and hand out local IP addresses
+sudo bash -c 'cat > /etc/dnsmasq.conf' << EOF
+interface=wlan0
+bind-dynamic 
+server=8.8.8.8
+domain-needed
+bogus-priv
+dhcp-range=192.168.50.150,192.168.50.200,12h
+EOF
+
+# Enable port forwarding (just on the off chance you want to connect an ethernet cable)
+sudo echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+
+# Prevent the dhcpcd service from starting the wifi network (the script will take care of this)
+sudo echo "nohook wpa_supplicant" >> /etc/dhcpcd.conf
+
+# Create service to automatically run the autohotspot script on boot
+sudo bash -c 'cat > /etc/systemd/system/autohotspot.service' << EOF
+[Unit]
+Description=Automatically generates a local hotspot when a known wifi network is not in range
+After=multi-user.target
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/autohotspot
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable the newly created service
+sudo systemctl enable autohotspot.service
+
+# Populate autohotspot script
+sudo bash -c 'cat > /bin/autohotspot' << EOF
+#!/bin/bash
+# Based on autohotspot script version 0.95-41-N/HS-I from RaspberryConnect.com
+# See full details at https://www.raspberryconnect.com/projects/65-raspberrypi-hotspot-accesspoints/157-raspberry-pi-auto-wifi-hotspot-switch-internet
+
+wifidev="wlan0" # Wifi device name
+ethdev="eth0" # Ethernet device to use with IP tables (IP forwarding for bridged-wifi-to-ethernet setup)
+
+IFSdef=$IFS
+cnt=0
+# The next four lines capture the wifi networks the RPi is setup to use
+wpassid=$(awk '/ssid="/{ print $0 }' /etc/wpa_supplicant/wpa_supplicant.conf | awk -F'ssid=' '{ print $2 }' ORS=',' | sed 's/\"/''/g' | sed 's/,$//')
+wpassid=$(echo "${wpassid//[$'\r\n']}")
+IFS=","
+ssids=($wpassid)
+IFS=$IFSdef # Reset back to defaults
+
+mac=()
+
+ssidsmac=("${ssids[@]}" "${mac[@]}") # Combines SSID and MAC for checking
+
+createAdHocNetwork()
+{
+  echo "Creating local hotspot"
+  ip link set dev "$wifidev" down
+  ip a add 192.168.50.5/24 brd + dev "$wifidev"
+  ip link set dev "$wifidev" up
+  dhcpcd -k "$wifidev" >/dev/null 2>&1
+  iptables -t nat -A POSTROUTING -o "$ethdev" -j MASQUERADE
+  iptables -A FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
+  iptables -A FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
+  systemctl start dnsmasq
+  systemctl start hostapd
+  echo 1 > /proc/sys/net/ipv4/ip_forward
+}
+
+KillHotspot()
+{
+  echo "Shutting down local hotspot"
+  ip link set dev "$wifidev" down
+  systemctl stop hostapd
+  systemctl stop dnsmasq
+  iptables -D FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
+  iptables -D FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
+  echo 0 > /proc/sys/net/ipv4/ip_forward
+  ip addr flush dev "$wifidev"
+  ip link set dev "$wifidev" up
+  dhcpcd -n "$wifidev" >/dev/null 2>&1
+}
+
+ChkWifiUp()
+{
+	echo "Checking wifi connection"
+    sleep 20 # Give enough time for connection to be completed to router
+	if ! wpa_cli -i "$wifidev" status | grep 'ip_address' >/dev/null 2>&1
+    then # Failed to connect to a known wifi network (known wifi network not in range)
+    echo 'Wifi failed to connect, falling back to local hotspot'
+      wpa_cli terminate "$wifidev" >/dev/null 2>&1
+    createAdHocNetwork
+	fi
+}
+
+FindSSID()
+{
+# Check to see what SSID's and MAC addresses are in range
+ssidChk=('NoSSid')
+i=0; j=0
+until [ $i -eq 1 ] # Wait for wifi if busy
+do
+  ssidreply=$((iw dev "$wifidev" scan ap-force | egrep "^BSS|SSID:") 2>&1) >/dev/null 2>&1 
+  echo "SSid's in range: " $ssidreply
+  echo "Device Available Check try " $j
+  if (($j >= 10)); then #if busy 10 times goto hotspot
+    echo "Device busy or unavailable 10 times, going to Hotspot"
+    ssidreply=""
+    i=1
+	elif echo "$ssidreply" | grep "No such device (-19)" >/dev/null 2>&1; then
+    echo "No Device Reported, try " $j
+		NoDevice
+  elif echo "$ssidreply" | grep "Network is down (-100)" >/dev/null 2>&1 ; then
+    echo "Network Not available, trying again" $j
+    j=$((j + 1))
+    sleep 2
+	elif echo "$ssidreply" | grep "Read-only file system (-30)" >/dev/null 2>&1 ; then
+		echo "Temporary Read only file system, trying again"
+		j=$((j + 1))
+		sleep 2
+	elif echo "$ssidreply" | grep "Invalid exchange (-52)" >/dev/null 2>&1 ; then
+		echo "Temporary unavailable, trying again"
+		j=$((j + 1))
+		sleep 2
+	elif ! echo "$ssidreply" | grep "resource busy (-16)"  >/dev/null 2>&1 ; then
+    echo "Device Available, checking SSid Results"
+		i=1
+	else #see if device not busy in 2 seconds
+    echo "Device unavailable checking again, try " $j
+		j=$((j + 1))
+		sleep 2
+	fi
+done
+
+for ssid in "${ssidsmac[@]}"
+do
+  if (echo "$ssidreply" | grep "$ssid") >/dev/null 2>&1
+  then
+    # Valid SSID found, passing to script
+    echo "Valid SSID detected, assesing wifi status"
+    ssidChk=$ssid
+    return 0
+  else
+    # No valid SSID found
+    echo "No SSID found, assessing wifi status"
+    ssidChk='NoSSid'
+  fi
+done
+}
+
+NoDevice()
+{
+	# If no wifi device, activate wifi so it will be available when it is reconnected
+	echo "No wifi device connected"
+	wpa_supplicant -B -i "$wifidev" -c /etc/wpa_supplicant/wpa_supplicant.conf >/dev/null 2>&1
+	exit 1
+}
+
+FindSSID
+
+# Create local hotspot or connect to valid wifi network
+if [ "$ssidChk" != "NoSSid" ] 
+then
+  echo 0 > /proc/sys/net/ipv4/ip_forward # Deactivate IP forwarding
+  if systemctl status hostapd | grep "(running)" >/dev/null 2>&1
+  then # Hotspot running and SSID in range
+    KillHotspot
+    echo "Hotspot deactivated, bringing wifi up"
+    wpa_supplicant -B -i "$wifidev" -c /etc/wpa_supplicant/wpa_supplicant.conf >/dev/null 2>&1
+    ChkWifiUp
+  elif { wpa_cli -i "$wifidev" status | grep 'ip_address'; } >/dev/null 2>&1
+    then # Already connected
+    echo "Already connected to an existing network"
+  else # SSID exists and no hotspot running --> connect to wifi network
+    echo "Connecting to the wifi network"
+    wpa_supplicant -B -i "$wifidev" -c /etc/wpa_supplicant/wpa_supplicant.conf >/dev/null 2>&1
+    ChkWifiUp
+  fi
+else # SSID or MAC address not in range
+  if systemctl status hostapd | grep "(running)" >/dev/null 2>&1
+  then
+    echo "Hostspot already active"
+  elif { wpa_cli status | grep "$wifidev"; } >/dev/null 2>&1
+  then
+    echo "Cleaning wifi files and activating local hotspot"
+    wpa_cli terminate >/dev/null 2>&1
+    ip addr flush "$wifidev"
+    ip link set dev "$wifidev" down
+    rm -r /var/run/wpa_supplicant >/dev/null 2>&1
+    createAdHocNetwork
+  else
+    echo "No valid SSID found, activating local hotspot"
+    createAdHocNetwork
+  fi
+fi
+EOF
+sudo chmod +x /bin/autohotspot
+
+echo "Network configuration complete"
+
+echo "Installing additional dependencies.........."
+
+# Install NodeJS (from NodeSource for the latest version)
+# First, update apt repo to include the NodeSource packages
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+# Now you can actually install the latest version of NodeJS (don't forget to install ffmpeg too)
+sudo apt-get install nodejs ffmpeg -y
+sudo npm install pm2 -g
+sudo pm2 startup
+cd /
+sudo mkdir sonostreamer
+sudo chown pi:pi sonostreamer
+
+# Change file permissions for important files
+sudo chmod ugo+w /etc/wpa_supplicant/wpa_supplicant.conf
+
+# Give the webpage access to the video device
+sudo usermod www-data -aG video
+
+# Give the user access to the video device
+sudo chmod ugo+rw /dev/video0
+
+echo "System configuration complete. Please reboot your Pi now....."

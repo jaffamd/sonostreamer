@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POCUS-Pi Settings</title>
+    <link rel="stylesheet" type="text/css" href="mercury.css">
+</head>
+  <body>
+    <h3>Sonostreamer Settings</h3>
+    <hr>
+    <br>
+    <h5 id="loading">Loading current settings...</h5>
+    <form action="./system/settings" method="post">
+      <fieldset>
+        <legend>WiFi Access Point</legend>
+        <p>
+          <label for="ap-ssid">Access Point Name (SSID)</label>
+          <input id="ap-ssid" type="text" placeholder="AP SSID">
+        </p>
+        <p>
+          <label for="ap-passphrase">Access Point Passphrase</label>
+          <input id="ap-passphrase" type="text" placeholder="AP Passphrase">
+        </p>
+      </fieldset>
+      <fieldset>
+        <legend>Client WiFi Network</legend>
+        <p>
+          <label for="client-ssid">Client Network Name (SSID)</label>
+          <input id="client-ssid" type="text" placeholder="Client SSID">
+        </p>
+        <p>
+          <label for="client-passphrase">Client Network Passphrase</label>
+          <input id="client-passphrase" type="text" placeholder="Client Passphrase">
+        </p>
+      </fieldset>
+      <fieldset>
+        <legend>Video Source</legend>
+        <p>
+          <label for="video-source">Video Input Source</label>
+          <select id="video-source">
+            <option>HDMI</option>
+            <option>S-video</option>
+            <option>Composite (RCA)</option>
+          </select>
+        </p>
+      </fieldset>
+      <fieldset>
+        <legend>Server Settings</legend>
+        <p>
+          <span style="letter-spacing: 0.1em;">http://<input id="server-address" type="text" placeholder="server address"> /live/ <input id="stream-key" type="text" placeholder="stream key"></span>
+        </p>
+        <p>
+          <fieldset>
+            <legend style="color: grey;">Field 1: Address</legend>
+            <span style="font-size: small; color: grey;">Your server's IP address (ex: 235.29.98.138) or URL (ex: example.com)</span>
+          </fieldset>
+          <fieldset>
+            <legend style="color: grey;">Field 2: Stream Key</legend>
+            <span style="font-size: small; color: grey;">Your stream's identifier (ex: livestream01)</span>
+          </fieldset>
+        </p>
+      </fieldset>
+      <input type="submit" value="Save Settings"> <input id="back-button" type="button" value="Back">
+    </form>
+  </body>
+  <script>
+    document.getElementById('back-button').addEventListener('click', event => {
+      location.href = './'
+    })
+    const form = document.querySelector('form')
+    form.addEventListener('submit', event => {
+      event.preventDefault()
+      let formdata = {}
+      for (i = 0; i < form.elements.length; i++) {
+        formdata[form.elements[i].id] = form.elements[i].value
+      }
+      formdata['video-source'] = form.elements['video-source'].selectedOptions[0].value
+      delete formdata['']
+      delete formdata['back-button']
+
+      fetch('./system/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formdata)
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(JSON.stringify(data.message))
+        location.href = './'
+      })
+      .catch((error) => alert(JSON.stringify(error.message)))
+    })
+
+    // Load system settings from file and fill the form with the existing data
+    fetch('./system/settings')
+      .then(response => response.json())
+      .then(data => {
+      	populateData(data)
+      })
+
+    function populateData(data) {
+      form.elements['ap-ssid'].value = data['ap-ssid']
+      form.elements['ap-passphrase'].value = data['ap-passphrase']
+      form.elements['client-ssid'].value = data['client-ssid']
+      form.elements['client-passphrase'].value = data['client-passphrase']
+      form.elements['server-address'].value = data['server-address']
+      form.elements['stream-key'].value = data['stream-key']
+      form.elements['video-source'].value = data['video-source']
+
+      document.getElementById('loading').style.display = 'none'
+    }
+  </script>
+</html>

@@ -1,78 +1,52 @@
 # Sonostreamer by JaffaMD
 
-The SonoConnect Streambox is an open-source hardware platform designed to enable extremely low-cost tele-ultrasound, thus facilitating education and healthcare capacity in the developing world. There are undoubtedly many other uses for a simple and inexpensive video streaming device, so if you'd like to share your thoughts, please get in touch (@jaffa_md on Twitter or by email at globalpocuspartners (a) gmail dot com)!
+The Sonostreamer (aka "Streambox 2.0") is an open-source device designed to enable extremely low-cost tele-ultrasound, thus facilitating education and healthcare capacity in both the developing and the developed world. There are undoubtedly many other uses for a simple and inexpensive video streaming device, so if you'd like to share your thoughts, please get in touch (@jaffa_md on Twitter or by email at ejaffa (a) globalpocuspartners dot com)!
 
-## Major Steps
-1. Set up the Raspberry Pi
-2. Set up the server
-3. Start livestreaming
+>NOTE: This is the first major update since the original release of the "Streambox" platform. The repository has now been split into this one for the Sonostreamer itself and a [separate repository for the server-side software](https://github.com/jaffamd/sonoserver) to process the live videostreams.
 
-See the parts list for a full list of required parts along with some helpful links to get started.
+## Setting up the Sonostreamer
 
-## Set up the Raspberry Pi
-Start by downloading the latest version of Raspbian, an operating system for the Raspberry Pi, from [this website](https://www.raspberrypi.org/downloads/raspbian/). (NOTE: For this version, make sure you get the version released 10-09-18 or later). You should download the "Lite" version in order to conserve space and shorten startup time, since you won't be using the graphical interface once the device is set up anyway. You'll also need a program to "flash" the operating system image onto a microSD card. There are plenty of programs that can do this, but my favorite is [Etcher](https://etcher.io/). Download and install Etcher, insert the blank microSD card into your computer (you may need an adapter if you only have a full-sized SD card slot, which most microSD cards will come with), and follow the prompts to flash the Raspbian image onto the microSD card.
+### Method #1: Custom Image (easiest)
 
-When the image is done flashing, open any plain text editing software (Notepad on Windows or TextEdit on Mac; avoid "word processors" like Microsoft Word) and save a blank document as "ssh" in the main directory of your microSD card (which should now be called "boot"). Make sure you don't give the "ssh" file an extension, and if it automatically gets the extension ".txt", remove it (if prompted, just choose "use without extension" or something along those lines). After that's done, **open the `configure-streambox.sh` file and fix the deliberate typo near the bottom of the file** by changing the rtmp address from rtmp://YOUR-IP-HERE/live/livestream and substituting in the web address or IP address of your target server. Save the file and then copy it to the same main folder on the "boot" disk. You can now safely eject the microSD card.
+- Download the pre-built image [here](https://jaffamd.com/streambox2.html)
+- Flash the image to a microSD card with [balenaEtcher](https://www.balena.io/etcher/)
+- Insert the microSD card into the Pi, insert the capture device into the USB port, and connect the Pi to power
+- Wait ~30-60 seconds for the system to start up and the wifi hotspot to stabilize
+- Connect to the wifi hotspot
 
-Place the SD card in the Raspberry Pi's card slot, then connect your Pi directly to your internet router with an Ethernet cable. **Make sure you also connect your TV capture card to a USB port**. Finally, connect the power cable to the Pi to turn it on.
->NOTE: If you have a monitor or TV with an HDMI cable and a USB keyboard, you can avoid the ethernet connection and login to the Pi manually, then connect to the WiFi using the command `sudo raspi-config` and following the prompts.
+> Default network name: `POCUS-Pi`
 
-Once the Pi boots up, you should be able to connect by SSH. On Windows, you'll need an SSH program like [PuTTY](https://www.putty.org/). On Mac, just open a terminal and type `ssh pi@raspberrypi.local` - when prompted for a password, enter the default password (`raspberry`).
+> Default network password: `pocuspi01`
+- Open a browser and navigate to `http://pocuspi.local`
+- Select `Settings / Wifi`
+- Change the client wifi details to match your existing wifi network details (this should trigger the "autohotspot script" to shut down the hotspot and connect to the client wifi instead, but you may need to push the `Reboot System` button to force the reconnection)
+- After giving the system a minute or so to reboot / reconnect, go to `http://pocuspi.local` again and choose the `Start Livestream` button to begin streaming
 
-Enter the command `passwd` to change the password. Use something secure.
+>Upon startup, if the device finds a known wifi network, it will connect to that automatically. If not, it will start the local hotspot so you can connect (as above) and add new wifi details.
 
-The `configure-streambox .sh` file (linked above) performs the entire configuration and setup process automatically, including updating the existing Raspberry Pi system files, installing the dependencies, setting up the WiFi system for simultaneous AP and client WiFi networks, creating and populating the webpage files for controlling the Streambox's livestreaming capabilities, and setting appropriate file permissions. Simply run the command `sudo /boot/configure.sh`, answer the prompts to enter information regarding client and desired access point network information, sit back, relax, and let the magic of open source software take care of the rest.
+### Method #2: Roll Your Own (requires comfort with a command line interface)
 
-Once the setup script is done (yes, it will take a while) you can reboot the Pi with `sudo reboot now`
-Give it a good 5 minutes to reboot and set up again the first time. At some point, you should your new WiFi network show up on your list. If you don't, unplug the Pi and plug it back in to force a second restart. It should work at that point.
+Start by downloading the [latest version of Raspberry Pi OS here](https://www.raspberrypi.org/downloads/raspbian/). As above, use balenaEtcher to flash the image onto a microSD card. The card will automatically "eject", so pull it out of the reader and put it back in so it shows up (it will be called `boot`).
 
-If everything worked, you should be able to connect to the new network with the password you chose above. Once connected, you can directly access the Pi through SSH with:
-~~~~
-ssh pi@192.168.10.1
-~~~~
->Keep in mind that this will only work if your computer is connected to the Pi's network.
+Download the files in the `rpi-self-start` folder. Open `wpa_supplicant.conf` with a lightweight text editor (preferably TextEdit on Mac or Notepad on Windows or Nano on Linux via the command line) and replace the wifi network name and passphrase with the details for your local network, then save the file and copy all three files to the `boot` drive.
 
-## Set up the server
-One of the cheapest and easiest ways to set up a server is through a service like [Digital Ocean](digitalocean.com). You can create a basic server with most of the software already installed for as little as $5/month. This guide will be assuming you make a "droplet" (mini-server) on Digital Ocean.
+Eject the microSD card, move it to the microSD card slot on the Raspberry Pi, plug in the USB capture device, and plug it into a power source. When the green LED stops flashing, it should be ready to go.
 
-After creating an account with Digital Ocean, create a droplet with Ubuntu 16.04 pre-installed (NOT 18.04). If you're hosting your own streaming server locally (my first one was a nearly-decade-old Macbook Pro sitting on my dining room table), find [a tutorial like this one](https://code.tutsplus.com/tutorials/how-to-set-up-a-dedicated-web-server-for-free--net-2043), which is the one I followed to install my first server. However you do it, make sure you install Ubuntu 16.04 (the Nginx software used in this system doesn't currently run on the newest version 18.04, nor does it run on other Linux distros as far as I'm aware).
+Access the Pi remotely from your computer via SSH (`ssh pi@raspberrypi.local` from the Terminal on a Mac or the equivalent command through a program like [PuTTY](https://www.putty.org/) on a Windows machine).
+>Default username: `pi`
 
-Once your server is up and running, you can use `ssh` to login just as you did with the Raspberry Pi above. For security purposes, if you are logged in as `root`, you should create a separate username and give it root privileges (but be sure to use different passwords for the two user accounts):
+>Default password: `raspberry`
 
-`adduser USERNAME`
+>Be sure to immediately change the default password with the `passwd` command
 
-`usermod -aG sudo USERNAME`
+You can now run the configuration script with the command:
+```
+sudo /boot/configure-sonostreamer
+```
+You may need to provide input once or twice during the process, but it should be self-explanatory.
 
-Check the sudo privileges:
-
-`su USERNAME`
-
-`sudo ls -la /root`
->Enter the new user's password (not the password for the root user). Note that this command will not work if sudo privileges were not properly granted.
-
-`exit`
->This will return you to the root user's account
-
-`logout`
->This will log you out of the root user's account. At this point, you should `ssh` back into the server under the new non-`root` username.
-
-### Configure the server environment
-The protocol we'll use to livestream video is called RTMP (Real-Time Messaging Protocol). Apache is not built to accept RTMP videostreams, but a modified version of the Nginx (pronounced 'engine ex') server works just fine. While logged into the server over SSH, enter the following series of commands:
-
-~~~
-sudo wget https://raw.githubusercontent.com/jaffamd/streambox/master/Server%20Files/configure-server.sh
-sudo chmod ugo+x configure-server.sh
-sudo ./configure-server.sh
-~~~
-
-Again, let the script run, and when it's finished, reboot your server with `sudo reboot now`
-
-## Start Streaming
-All that's left to do at this point is to start streaming! Make sure your ultrasound machine is plugged into your capture card, which is plugged into your Streambox, and then power up the Streambox. Once the WiFi network shows up, connect your phone or computer to the network, open a web browser (Chrome should definitely work; others may be spotty), and navigate to `streambox.com`. You should see several buttons at this point. Start the livestream by pressing or clicking the "Start Livestream" button.
-
-### View the stream
-The easiest way to view the livestream is with VLC, a free video player that you can [download here](https://www.videolan.org/vlc/index.html). Open up VLC, click File in the menu bar and click Open Network. This will open a dialog box with an input field. In that field, enter:
-`rtmp://YOUR-IP/live/livestream`
-There will be a delay of a few seconds while the videostream buffers, and then your video should start playing automatically. When you're done streaming, make sure to hit the "Stop Livestream" button on the Streambox's webpage.
-
-**Update:** With the new server configuration, your streams will automatically save to `/rec`. You can view them after the fact at any time with the new video-on-demand application. Just point the VLC network stream to `rtmp://YOUR-IP/vod/$filename` where $filename is the complete path of the video file ending in `.flv` - log into your server and use the command `ls /rec` to list the saved video filenames.
+Once the script has finished running, you should reboot the system with:
+```
+sudo reboot now
+```
+Note that the Sonostreamer's control webpage will be accessible at `http://raspberrypi.local` rather than `http://pocuspi.local` unless you change the device's `hostname` (easiest way is by running the command `sudo raspi-config` and choosing `Network Options` followed by `Change hostname`).
