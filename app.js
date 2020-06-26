@@ -62,25 +62,28 @@ function apply(settings) {
     }
   })
   console.log('System settings successfully saved')
-  console.log('Running autohotspot script...')
   triggerHotspot()
   return
 }
 
 function triggerHotspot() {
-  hotspot = exec('sudo autohotspot', function (error, stdout, stderr) {
-    if (error) {
-      console.log(error.stack)
-      console.log('Error code: ' + error.code)
-      console.log('Signal received: ' + error.signal)
-    }
-    console.log('Hotspot child process STDOUT: ' + stdout)
-    console.log('Hotspot child process STDERR: ' + stderr)
-  })
+  var hotspot = spawn("hotspot", []);
 
-  hotspot.on('exit', function (code) {
-    console.log('Hotspot child process exited with exit code ' + code)
-  })
+  hotspot.stdout.on("data", data => {
+      console.log(`stdout: ${data}`);
+  });
+
+  hotspot.stderr.on("data", data => {
+      console.log(`stderr: ${data}`);
+  });
+
+  hotspot.on('error', (error) => {
+      console.log(`error: ${error.message}`);
+  });
+
+  hotspot.on("close", code => {
+      console.log(`child process exited with code ${code}`);
+  });
 }
 
 async function configureInputDevice() {

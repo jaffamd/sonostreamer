@@ -78,6 +78,10 @@ sudo systemctl enable autohotspot.service
 # Move autohotspot script to the proper location
 sudo mv ./autohotspot /bin/autohotspot
 
+# Create alias to ensure autohotspot script is run with superuser permissions
+sudo echo "alias hotspot='sudo autohotspot'" >> ~/.bashrc
+source ~/.bashrc
+
 echo "Network configuration complete"
 
 echo "Installing additional dependencies.........."
