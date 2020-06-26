@@ -43,7 +43,8 @@ You can now download the repository and run the configuration script with the fo
 ```
 sudo apt-get install git -y
 cd /
-git clone https://github.com/jaffamd/sonostreamer.git
+sudo git clone https://github.com/jaffamd/sonostreamer.git
+sudo chown -R pi:pi sonostreamer
 cd sonostreamer
 sudo ./configure-sonostreamer
 ```
