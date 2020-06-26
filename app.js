@@ -1,8 +1,8 @@
 const express = require('express')
 const fs = require('fs')
 const { exec, spawn } = require('child_process')
+const shell = require('shelljs')
 var livestream
-var hotspot
 var systemSettings
 
 function apply(settings) {
@@ -67,23 +67,8 @@ function apply(settings) {
 }
 
 function triggerHotspot() {
-  var hotspot = spawn("hotspot")
-
-  hotspot.stdout.on("data", data => {
-    console.log(`stdout: ${data}`)
-  })
-
-  hotspot.stderr.on("data", data => {
-    console.log(`stderr: ${data}`)
-  })
-
-  hotspot.on('error', (error) => {
-    console.log(`error: ${error.message}`)
-  })
-
-  hotspot.on("close", code => {
-    console.log(`child process exited with code ${code}`)
-  })
+  console.log('Trying to run hotspot script...')
+  shell.exec('hotspot')
 }
 
 async function configureInputDevice() {
