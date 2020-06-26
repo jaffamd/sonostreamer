@@ -9,7 +9,6 @@
   "author": "Elias Jaffa, MD, MS (@jaffa_md)",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "express": "^4.17.1",
-    "shelljs": "^0.8.4"
+    "express": "^4.17.1"
   }
 }
