@@ -41,6 +41,7 @@ Access the Pi remotely from your computer via SSH (`ssh pi@raspberrypi.local` fr
 
 You can now download the repository and run the configuration script with the following commands:
 ```
+sudo apt-get install git -y
 cd /
 git clone https://github.com/jaffamd/sonostreamer.git
 cd sonostreamer
