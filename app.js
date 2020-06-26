@@ -67,23 +67,23 @@ function apply(settings) {
 }
 
 function triggerHotspot() {
-  var hotspot = spawn("hotspot", []);
+  var hotspot = spawn("hotspot")
 
   hotspot.stdout.on("data", data => {
-      console.log(`stdout: ${data}`);
-  });
+    console.log(`stdout: ${data}`)
+  })
 
   hotspot.stderr.on("data", data => {
-      console.log(`stderr: ${data}`);
-  });
+    console.log(`stderr: ${data}`)
+  })
 
   hotspot.on('error', (error) => {
-      console.log(`error: ${error.message}`);
-  });
+    console.log(`error: ${error.message}`)
+  })
 
   hotspot.on("close", code => {
-      console.log(`child process exited with code ${code}`);
-  });
+    console.log(`child process exited with code ${code}`)
+  })
 }
 
 async function configureInputDevice() {
