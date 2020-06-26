@@ -2,6 +2,7 @@ const express = require('express')
 const fs = require('fs')
 const { exec, spawn } = require('child_process')
 var livestream
+var hotspot
 var systemSettings
 
 function apply(settings) {
@@ -62,8 +63,24 @@ function apply(settings) {
   })
   console.log('System settings successfully saved')
   console.log('Running autohotspot script...')
-  exec('sudo autohotspot &')
+  triggerHotspot()
   return
+}
+
+function triggerHotspot() {
+  hotspot = exec('sudo autohotspot', function (error, stdout, stderr) {
+    if (error) {
+      console.log(error.stack)
+      console.log('Error code: ' + error.code)
+      console.log('Signal received: ' + error.signal)
+    }
+    console.log('Hotspot child process STDOUT: ' + stdout)
+    console.log('Hotspot child process STDERR: ' + stderr)
+  })
+
+  hotspot.on('exit', function (code) {
+    console.log('Hotspot child process exited with exit code ' + code)
+  })
 }
 
 async function configureInputDevice() {

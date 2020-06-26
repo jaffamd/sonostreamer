@@ -91,7 +91,7 @@ sudo npm install pm2 -g
 sudo pm2 startup
 
 # Change file permissions for important files
-sudo chmod ugo+w /etc/wpa_supplicant/wpa_supplicant.conf
+sudo chmod ugo+rw /etc/wpa_supplicant/wpa_supplicant.conf
 
 # Give the webpage access to the video device
 sudo usermod www-data -aG video
