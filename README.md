@@ -28,7 +28,7 @@ The Sonostreamer (aka "Streambox 2.0") is an open-source device designed to enab
 
 Start by downloading the [latest version of Raspberry Pi OS here](https://www.raspberrypi.org/downloads/raspbian/). As above, use balenaEtcher to flash the image onto a microSD card. The card will automatically "eject", so pull it out of the reader and put it back in so it shows up (it will be called `boot`).
 
-Download the files in the `rpi-self-start` folder. Open `wpa_supplicant.conf` with a lightweight text editor (preferably TextEdit on Mac or Notepad on Windows or Nano on Linux via the command line) and replace the wifi network name and passphrase with the details for your local network, then save the file and copy all three files to the `boot` drive.
+Download the files in the [raspberrypi-startup repository](https://github.com/jaffamd/raspberrypi-startup). Open `wpa_supplicant.conf` with a lightweight text editor (preferably TextEdit on Mac or Notepad on Windows or Nano on Linux via the command line) and replace the wifi network name and passphrase with the details for your local network, then save the file and copy both files (`wpa_supplicant.conf` and `ssh`) to the `boot` drive.
 
 Eject the microSD card, move it to the microSD card slot on the Raspberry Pi, plug in the USB capture device, and plug it into a power source. When the green LED stops flashing, it should be ready to go.
 
@@ -39,9 +39,12 @@ Access the Pi remotely from your computer via SSH (`ssh pi@raspberrypi.local` fr
 
 >Be sure to immediately change the default password with the `passwd` command
 
-You can now run the configuration script with the command:
+You can now download the repository and run the configuration script with the following commands:
 ```
-sudo /boot/configure-sonostreamer
+cd /
+git clone https://github.com/jaffamd/sonostreamer.git
+cd sonostreamer
+sudo ./configure-sonostreamer
 ```
 You may need to provide input once or twice during the process, but it should be self-explanatory.
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This script configures the SonoConnect Streambox environment on the Raspberry Pi platform
 # Licence: GPLv3
 # Author: Elias Jaffa (@jaffa_md)
@@ -128,53 +128,53 @@ KillHotspot()
 
 ChkWifiUp()
 {
-	echo "Checking wifi connection"
-    sleep 20 # Give enough time for connection to be completed to router
-	if ! wpa_cli -i "$wifidev" status | grep 'ip_address' >/dev/null 2>&1
+  echo "Checking wifi connection"
+  sleep 20 # Give enough time for connection to be completed to router
+  if ! wpa_cli -i "$wifidev" status | grep 'ip_address' >/dev/null 2>&1
     then # Failed to connect to a known wifi network (known wifi network not in range)
     echo 'Wifi failed to connect, falling back to local hotspot'
-      wpa_cli terminate "$wifidev" >/dev/null 2>&1
+    wpa_cli terminate "$wifidev" >/dev/null 2>&1
     createAdHocNetwork
-	fi
+  fi
 }
 
 FindSSID()
 {
-# Check to see what SSID's and MAC addresses are in range
-ssidChk=('NoSSid')
-i=0; j=0
-until [ $i -eq 1 ] # Wait for wifi if busy
-do
-  ssidreply=$((iw dev "$wifidev" scan ap-force | egrep "^BSS|SSID:") 2>&1) >/dev/null 2>&1 
-  echo "SSid's in range: " $ssidreply
-  echo "Device Available Check try " $j
-  if (($j >= 10)); then #if busy 10 times goto hotspot
-    echo "Device busy or unavailable 10 times, going to Hotspot"
-    ssidreply=""
-    i=1
-	elif echo "$ssidreply" | grep "No such device (-19)" >/dev/null 2>&1; then
-    echo "No Device Reported, try " $j
-		NoDevice
-  elif echo "$ssidreply" | grep "Network is down (-100)" >/dev/null 2>&1 ; then
-    echo "Network Not available, trying again" $j
-    j=$((j + 1))
-    sleep 2
-	elif echo "$ssidreply" | grep "Read-only file system (-30)" >/dev/null 2>&1 ; then
-		echo "Temporary Read only file system, trying again"
-		j=$((j + 1))
-		sleep 2
-	elif echo "$ssidreply" | grep "Invalid exchange (-52)" >/dev/null 2>&1 ; then
-		echo "Temporary unavailable, trying again"
-		j=$((j + 1))
-		sleep 2
-	elif ! echo "$ssidreply" | grep "resource busy (-16)"  >/dev/null 2>&1 ; then
-    echo "Device Available, checking SSid Results"
-		i=1
-	else #see if device not busy in 2 seconds
-    echo "Device unavailable checking again, try " $j
-		j=$((j + 1))
-		sleep 2
-	fi
+  # Check to see what SSID's and MAC addresses are in range
+  ssidChk=('NoSSid')
+  i=0; j=0
+  until [ $i -eq 1 ] # Wait for wifi if busy
+  do
+    ssidreply=$((iw dev "$wifidev" scan ap-force | egrep "^BSS|SSID:") 2>&1) >/dev/null 2>&1
+    echo "SSid's in range: " $ssidreply
+    echo "Device Available Check try " $j
+    if (($j >= 10)); then #if busy 10 times goto hotspot
+      echo "Device busy or unavailable 10 times, going to Hotspot"
+      ssidreply=""
+      i=1
+    elif echo "$ssidreply" | grep "No such device (-19)" >/dev/null 2>&1; then
+      echo "No Device Reported, try " $j
+      NoDevice
+    elif echo "$ssidreply" | grep "Network is down (-100)" >/dev/null 2>&1 ; then
+      echo "Network Not available, trying again" $j
+      j=$((j + 1))
+      sleep 2
+    elif echo "$ssidreply" | grep "Read-only file system (-30)" >/dev/null 2>&1 ; then
+      echo "Temporary Read only file system, trying again"
+      j=$((j + 1))
+      sleep 2
+    elif echo "$ssidreply" | grep "Invalid exchange (-52)" >/dev/null 2>&1 ; then
+      echo "Temporary unavailable, trying again"
+      j=$((j + 1))
+      sleep 2
+    elif ! echo "$ssidreply" | grep "resource busy (-16)"  >/dev/null 2>&1 ; then
+      echo "Device Available, checking SSid Results"
+      i=1
+    else #see if device not busy in 2 seconds
+      echo "Device unavailable checking again, try " $j
+      j=$((j + 1))
+      sleep 2
+    fi
 done
 
 for ssid in "${ssidsmac[@]}"
@@ -195,16 +195,16 @@ done
 
 NoDevice()
 {
-	# If no wifi device, activate wifi so it will be available when it is reconnected
-	echo "No wifi device connected"
-	wpa_supplicant -B -i "$wifidev" -c /etc/wpa_supplicant/wpa_supplicant.conf >/dev/null 2>&1
-	exit 1
+  # If no wifi device, activate wifi so it will be available when it is reconnected
+  echo "No wifi device connected"
+  wpa_supplicant -B -i "$wifidev" -c /etc/wpa_supplicant/wpa_supplicant.conf >/dev/null 2>&1
+  exit 1
 }
 
 FindSSID
 
 # Create local hotspot or connect to valid wifi network
-if [ "$ssidChk" != "NoSSid" ] 
+if [ "$ssidChk" != "NoSSid" ]
 then
   echo 0 > /proc/sys/net/ipv4/ip_forward # Deactivate IP forwarding
   if systemctl status hostapd | grep "(running)" >/dev/null 2>&1
@@ -252,9 +252,6 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt-get install nodejs ffmpeg -y
 sudo npm install pm2 -g
 sudo pm2 startup
-cd /
-sudo mkdir sonostreamer
-sudo chown pi:pi sonostreamer
 
 # Change file permissions for important files
 sudo chmod ugo+w /etc/wpa_supplicant/wpa_supplicant.conf
@@ -262,7 +259,14 @@ sudo chmod ugo+w /etc/wpa_supplicant/wpa_supplicant.conf
 # Give the webpage access to the video device
 sudo usermod www-data -aG video
 
-# Give the user access to the video device
+# Give the webpage access to the video device
 sudo chmod ugo+rw /dev/video0
+
+# Install the dependencies from the NPM package and start the script running
+npm install
+sudo npm start
+
+# Save the PM2 dump so that the web app will start when the Pi boots
+sudo pm2 save
 
 echo "System configuration complete. Please reboot your Pi now....."
