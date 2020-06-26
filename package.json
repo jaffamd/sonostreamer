@@ -1,6 +1,6 @@
 {
   "name": "sonostreamer",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A simple, user-friendly software platform to facilitate livestreaming ultrasound images for realtime feedback and guidance. Designed for use with the Raspberry Pi line of SBCs.",
   "main": "app.js",
   "scripts": {

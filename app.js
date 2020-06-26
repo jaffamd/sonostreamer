@@ -1,7 +1,6 @@
 const express = require('express')
 const fs = require('fs')
 const { exec, spawn } = require('child_process')
-var hotspot
 var livestream
 var systemSettings
 
@@ -62,17 +61,7 @@ function apply(settings) {
     }
   })
   console.log('System settings successfully saved')
-  triggerHotspot()
   return
-}
-
-function triggerHotspot() {
-  console.log('Trying to run hotspot script...')
-  hotspot = spawn('hotspot')
-
-  hotspot.on('exit', (code, signal) => {
-    console.log(`child process exited with code ${code} and signal ${signal}`)
-  })
 }
 
 async function configureInputDevice() {
