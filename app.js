@@ -1,7 +1,7 @@
 const express = require('express')
 const fs = require('fs')
-const { exec, spawn } = require('child_process')
-var livestream
+const { exec } = require('child_process')
+const execa = require('execa')
 var systemSettings
 
 function apply(settings) {
@@ -61,6 +61,7 @@ function apply(settings) {
     }
   })
   console.log('System settings successfully saved')
+  exec('sudo autohotspot')
   return
 }
 
@@ -116,19 +117,20 @@ app.get('/stream/start',  (req, res) => {
   // Make sure the input device is properly configured
   configureInputDevice()
 
-  // Start the livestream process
-  livestream = spawn('ffmpeg', JSON.parse(systemSettings['stream-params']))
-
-  livestream.on('exit', (code, signal) => {
-    res.json({ message: `child process exited with code ${code} and signal ${signal}` })
-  })
+  // Start the livestream (requires async process)
+  startLivestream()
 
   res.json({ message: 'Stream started' })
 })
 
+async function startLivestream() {
+  const {stdout} = await execa('ffmpeg', JSON.parse(systemSettings['stream-params']))
+  console.log(stdout)
+}
+
 // Stop livestream
 app.get('/stream/stop', (req, res) => {
-  livestream.kill()
+  exec('sudo killall ffmpeg')
   res.json({ message: 'Stream stopped' })
 })
 

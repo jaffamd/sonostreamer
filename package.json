@@ -4,11 +4,12 @@
   "description": "A simple, user-friendly software platform to facilitate livestreaming ultrasound images for realtime feedback and guidance. Designed for use with the Raspberry Pi line of SBCs.",
   "main": "app.js",
   "scripts": {
-    "start": "pm2 start app.js --name sonostreamer --log sonostreamer.log --watch --ignore-watch=\"node_modules\" --ignore-watch=\"sonostreamer.log\""
+    "start": "pm2 start app.js --name sonostreamer --log sonostreamer.log"
   },
   "author": "Elias Jaffa, MD, MS (@jaffa_md)",
   "license": "GPL-3.0-or-later",
   "dependencies": {
+    "execa": "^4.0.2",
     "express": "^4.17.1"
   }
 }
