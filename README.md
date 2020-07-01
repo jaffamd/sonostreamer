@@ -4,6 +4,17 @@ The Sonostreamer (aka "Streambox 2.0") is an open-source device designed to enab
 
 >NOTE: This is the first major update since the original release of the "Streambox" platform. The repository has now been split into this one for the Sonostreamer itself and a [separate repository for the server-side software](https://github.com/jaffamd/sonoserver) to process the live videostreams.
 
+## Feature Set
+- [x] Automatic hotspot when not connected to existing wifi
+- [x] Multiple Pi variants supported (tested on Raspberry Pi 4B / 3A+ / Zero W)
+- [ ] Likely websockets-based live status indicators on controls page
+  - [ ] Connection status of capture device (presence of /dev/video0)
+  - [ ] Transmission indicator (grep top? or something similar?)
+  - [ ] Active internet connection
+- [ ] Captive portal when connected to hotspot
+- [ ] Dedicated mobile app to control the Pi (to replace the self-hosted webpage control buttons)
+- [ ] Replace Pi entirely with phone app (would likely only be Android-based, as iOS does not currently support UVC camera input)
+
 ## Setting up the Sonostreamer
 
 ### Method #1: Custom Image (easiest)

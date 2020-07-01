@@ -62,7 +62,7 @@ sudo echo "nohook wpa_supplicant" >> /etc/dhcpcd.conf
 # Create service to automatically run the autohotspot script on boot
 sudo bash -c 'cat > /etc/systemd/system/autohotspot.service' << EOF
 [Unit]
-Description=Automatically generates a local hotspot when a known wifi network is not in range
+Description=Automatic hotspot (generate local hotspot when not connected to wifi)
 After=multi-user.target
 [Service]
 Type=oneshot
@@ -87,6 +87,8 @@ echo "Installing additional dependencies.........."
 curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 # Now you can actually install the latest version of NodeJS (don't forget to install ffmpeg too)
 sudo apt-get install nodejs ffmpeg -y
+# Uncomment the next line if installing on Raspberry Pi Zero W
+#sudo apt-get install npm -y
 sudo npm install pm2 -g
 sudo pm2 startup
 
