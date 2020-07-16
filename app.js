@@ -2,7 +2,14 @@ const express = require('express')
 const fs = require('fs')
 const { exec } = require('child_process')
 const execa = require('execa')
+const websocket = require('ws')
+const find = require('find-process')
 var systemSettings
+
+var status = {
+  captureDevice: false,
+  stream: false
+}
 
 function apply(settings) {
   // Save AP SSID and passphrase
@@ -88,6 +95,49 @@ async function configureInputDevice() {
   return
 }
 
+function checkCaptureDevice() {
+  const path = '/dev/video0'
+
+  try {
+    if (fs.existsSync(path)) {
+      console.log('Capture device detected')
+      status.captureDevice = true
+    } else if (!fs.existsSync(path)) {
+      console.log('Capture device NOT detected')
+      status.captureDevice = false
+    }
+  } catch(err) {
+    console.error(err)
+    status.captureDevice = false
+  }
+}
+
+function checkStreamStatus() {
+  console.log('check stream status')
+  find('name', 'ffmpeg', true)
+    .then(function(list) {
+      console.log('ffmpeg processes running: ' + list.length)
+      if(list.length == 0) {
+        status.stream = false
+      } else {
+        status.stream = true
+      }
+    })
+    .catch(err => {
+      'find ffmpeg error'
+      status.stream = false
+    })
+}
+
+// Timed function to send status of capture device and stream once per second via websocket
+function sendStatus(websocket) {
+  checkCaptureDevice()
+  checkStreamStatus()
+  console.log('Status to send: ' + JSON.stringify(status))
+  websocket.send(JSON.stringify(status))
+  setTimeout(sendStatus, 1000, websocket)
+}
+
 const app = express()
 
 // Serve static files
@@ -146,6 +196,24 @@ app.get('/system/shutdown', (req, res) => {
   exec('sudo shutdown now')
 })
 
+// Check streaming status
+app.get('/system/checkstream', (req, res) => {
+  if(checkStreamStatus()) {
+    console.log('Currently streaming')
+  } else {
+    console.log('Currently NOT streaming')
+  }
+})
+
+// Check capture device status
+app.get('/system/checkcapturedevice', (req, res) => {
+  if(checkCaptureDevice()) {
+    console.log('Capture device connected')
+  } else {
+    console.log('Capture device NOT connected')
+  }
+})
+
 // ---------------
 // Manage settings
 // ---------------
@@ -175,3 +243,19 @@ app.post('/system/settings', (req, res) => {
 })
 
 app.listen(80, () => console.log('Sonostreamer client started at ' + new Date().toISOString().replace('T', ' ').substr(0, 19)))
+
+// -------------------------
+// WebSockets Implementation
+// -------------------------
+
+
+const wsserver = new websocket.Server({ port: 8080 })
+
+wsserver.on('connection', websocket => {
+  console.log('Connected to client')
+  // When a client connects (e.g. a user opens the webpage), start running the sendStatus function once per second
+  setTimeout(sendStatus, 1000, websocket)
+  websocket.on('message', message => {
+    console.log(`Received message from client => ${message}`)
+  })
+})

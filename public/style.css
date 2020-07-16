@@ -1,0 +1,46 @@
+* {
+  font-weight: bold;
+}
+
+html {
+  background-color: #eeeeee;
+  text-align: center;
+}
+
+button {
+  margin: auto;
+  border: 0;
+  width: 50%;
+  max-width: 400px;
+  font-size: 100%;
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
+  box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff;
+  display: block;
+  border-radius: 20px;
+}
+
+#status-field {
+  background-color: #eeeeee;
+  margin: auto;
+  margin-top: 40px;
+  width: 50%;
+  max-width: 200px;
+  padding: 20px;
+  display: block;
+  text-align: left;
+}
+
+.status {
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 0.6em;
+  background-color: gray;
+  float: left;
+  margin: 5px;
+}
+
+.status-label {
+  margin: 5px;
+}
