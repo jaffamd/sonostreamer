@@ -7,9 +7,9 @@ The Sonostreamer (aka "Streambox 2.0") is an open-source device designed to enab
 ## Feature Set
 - [x] Automatic hotspot when not connected to existing wifi
 - [x] Multiple Pi variants supported (tested on Raspberry Pi 4B / 3A+ / Zero W)
-- [ ] Likely websockets-based live status indicators on controls page
-  - [ ] Connection status of capture device (presence of /dev/video0)
-  - [ ] Transmission indicator (grep top? or something similar?)
+- [x] Likely websockets-based live status indicators on controls page
+  - [x] Connection status of capture device (presence of /dev/video0)
+  - [x] Transmission indicator (grep top? or something similar?)
   - [ ] Active internet connection
 - [ ] Captive portal when connected to hotspot
 - [ ] Dedicated mobile app to control the Pi (to replace the self-hosted webpage control buttons)
