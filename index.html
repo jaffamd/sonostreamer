@@ -8,16 +8,20 @@
   </head>
   <body>
     <h2>Sonostreamer</h2>
-    <button onclick="fetch('./stream/start')">Start Livestream</button>
-    <button onclick="fetch('./stream/stop')">Stop Livestream</button>
-    <button onclick="location.href='./settings'">Settings / Wifi</button>
-    <button onclick="fetch('./system/reboot')">Reboot System</button>
-    <button onclick="fetch('./system/shutdown')">Shutdown System</button>
     <fieldset id="status-field">
     	<legend>System Status</legend>
-    	<p><div id="capture-device-status" class="status"></div><span class="status-label">Capture Device</span></p><br>
+    	<p><div id="capture-device-status" class="status"></div><span class="status-label">Capture Device</span></p>
     	<p><div id="stream-status" class="status"></div><span class="status-label">Livestream</span></p>
     </fieldset>
+    <div class="button-grid">
+      <button onclick="requestUpdate()" disabled class="up-to-date" id="update-btn"></button>
+      <button onclick="fetch('./stream/start')">Start Livestream</button>
+      <button onclick="fetch('./stream/stop')">Stop Livestream</button>
+      <button onclick="location.href='./settings'">Settings / Wifi</button>
+      <button onclick="fetch('./system/reboot')">Reboot System</button>
+      <button onclick="fetch('./system/shutdown')">Shutdown System</button>
+    </div>
   <script src="./client.js"></script>
   </body>
 </html>
+

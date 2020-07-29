@@ -1,0 +1,20 @@
+#!/bin/bash
+# Update and upgrade packages
+sudo apt-get update && sudo apt-get upgrade -y
+
+# Go to the device root
+cd /
+
+# Remove old sonostreamer folder
+sudo rm -R sonostreamer
+
+# Clone the latest version of the repo and change the permissions
+sudo git clone https://github.com/jaffamd/sonostreamer.git
+sudo chown -R pi:pi sonostreamer
+cd sonostreamer
+
+# Install the new dependencies
+npm install
+
+# Reboot the system
+sudo reboot now

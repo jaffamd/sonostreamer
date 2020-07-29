@@ -7,6 +7,17 @@ html {
   text-align: center;
 }
 
+body {
+  padding-bottom: 40px;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin: auto;
+  width: 85%;
+}
+
 button {
   margin: auto;
   border: 0;
@@ -17,17 +28,76 @@ button {
   padding: 20px;
   margin-top: 40px;
   box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff;
-  display: block;
+  /* display: block; */
   border-radius: 20px;
+}
+
+.update-checking {
+  background-color: #eeeeee;
+  box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff;
+  color: #b5b5b5;
+  animation-name: colorcheck;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+.update-checking:after {
+  content: "Checking for updates...";
+}
+
+.up-to-date {
+  box-shadow: none;
+  background-color: #dddddd;
+  color: #b5b5b5;
+}
+
+.up-to-date:after {
+  content: "System is up to date";
+}
+
+.update-available {
+  box-shadow: none;
+  color: rgb(74, 74, 74);
+  animation-name: color;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+.update-available:after {
+  content: "Software update available"
+}
+
+@keyframes color {
+  0% {
+    box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff;
+  }
+  50% {
+    box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff, 6px 6px 14px rgba(31, 73, 125, 0.8), -6px -6px 14px rgba(31, 73, 125, 0.8), 6px -6px 14px rgba(31, 73, 125, 0.8), -6px 6px 14px rgba(31, 73, 125, 0.8);
+  }
+  100% {
+    box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff;
+  }
+}
+
+@keyframes colorcheck {
+  0% {
+    box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff;
+  }
+  50% {
+    box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff, 0px 6px 14px rgba(31, 73, 125, 0.8);
+  }
+  100% {
+    box-shadow: 6px 6px 18px #cacaca, -6px -6px 18px #ffffff;
+  }
 }
 
 #status-field {
   background-color: #eeeeee;
   margin: auto;
-  margin-top: 40px;
+  margin-top: 30px;
   width: 50%;
   max-width: 200px;
-  padding: 20px;
+  padding: 10px;
   display: block;
   text-align: left;
 }
@@ -43,4 +113,21 @@ button {
 
 .status-label {
   margin: 5px;
+}
+
+@media only screen and (max-width: 768px) {
+
+  .button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 2rem;
+  }
+
+  button {
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+    height: 75%;
+  }
+
 }

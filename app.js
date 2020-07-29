@@ -4,6 +4,7 @@ const { exec } = require('child_process')
 const execa = require('execa')
 const websocket = require('ws')
 const find = require('find-process')
+const fetch = require('node-fetch')
 var systemSettings
 
 var status = {
@@ -100,10 +101,10 @@ function checkCaptureDevice() {
 
   try {
     if (fs.existsSync(path)) {
-      console.log('Capture device detected')
+      //console.log('Capture device detected')
       status.captureDevice = true
     } else if (!fs.existsSync(path)) {
-      console.log('Capture device NOT detected')
+      //console.log('Capture device NOT detected')
       status.captureDevice = false
     }
   } catch(err) {
@@ -113,10 +114,10 @@ function checkCaptureDevice() {
 }
 
 function checkStreamStatus() {
-  console.log('check stream status')
+  //console.log('check stream status')
   find('name', 'ffmpeg', true)
     .then(function(list) {
-      console.log('ffmpeg processes running: ' + list.length)
+      //console.log('ffmpeg processes running: ' + list.length)
       if(list.length == 0) {
         status.stream = false
       } else {
@@ -133,7 +134,7 @@ function checkStreamStatus() {
 function sendStatus(websocket) {
   checkCaptureDevice()
   checkStreamStatus()
-  console.log('Status to send: ' + JSON.stringify(status))
+  //console.log('Status to send: ' + JSON.stringify(status))
   websocket.send(JSON.stringify(status))
   setTimeout(sendStatus, 1000, websocket)
 }
@@ -199,18 +200,18 @@ app.get('/system/shutdown', (req, res) => {
 // Check streaming status
 app.get('/system/checkstream', (req, res) => {
   if(checkStreamStatus()) {
-    console.log('Currently streaming')
+    //console.log('Currently streaming')
   } else {
-    console.log('Currently NOT streaming')
+    //console.log('Currently NOT streaming')
   }
 })
 
 // Check capture device status
 app.get('/system/checkcapturedevice', (req, res) => {
   if(checkCaptureDevice()) {
-    console.log('Capture device connected')
+    //console.log('Capture device connected')
   } else {
-    console.log('Capture device NOT connected')
+    //console.log('Capture device NOT connected')
   }
 })
 
@@ -242,6 +243,39 @@ app.post('/system/settings', (req, res) => {
   res.json({ message: 'Settings saved successfully' })
 })
 
+// ---------------------
+// Manage system updates
+// ---------------------
+
+// Route to manage updating system files (automated-ish future updates)
+app.get('/system/checkupdate', (req, res) => {
+  // Retrieve the package.json file from the master GitHub repo online and extract the version number
+  fetch('https://raw.githubusercontent.com/jaffamd/sonostreamer/master/package.json', { method: 'get' })
+    .then(data => data.json())
+    .then((json) => {
+      let remoteVersion = json.version
+      // Retrieve the local version number from the local package.json file
+      fs.readFile('/sonostreamer/package.json', (err, data) => {
+        if(err) {
+          console.log(err)
+          res.send(err)
+        }
+        localVersion = JSON.parse(data).version
+        console.log('Local version: ' + localVersion)
+        console.log('Remote version: ' + remoteVersion)
+        if (localVersion == remoteVersion) {
+          res.json({msg: 'uptodate'})
+        } else {
+          res.json({msg: 'updateneeded'})
+        }
+      })
+    })
+})
+
+app.get('/system/update', (req, res) => {
+  exec('sudo ./systemupdate &')
+})
+
 app.listen(80, () => console.log('Sonostreamer client started at ' + new Date().toISOString().replace('T', ' ').substr(0, 19)))
 
 // -------------------------
@@ -256,6 +290,6 @@ wsserver.on('connection', websocket => {
   // When a client connects (e.g. a user opens the webpage), start running the sendStatus function once per second
   setTimeout(sendStatus, 1000, websocket)
   websocket.on('message', message => {
-    console.log(`Received message from client => ${message}`)
+    //console.log(`Received message from client => ${message}`)
   })
 })
