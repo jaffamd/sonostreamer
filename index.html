@@ -14,7 +14,7 @@
     	<p><div id="stream-status" class="status"></div><span class="status-label">Livestream</span></p>
     </fieldset>
     <div class="button-grid">
-      <button onclick="fetch('./system/update')" disabled class="up-to-date" id="update-btn"></button>
+      <button onclick="requestUpdate()" disabled class="up-to-date" id="update-btn"></button>
       <button onclick="fetch('./stream/start')">Start Livestream</button>
       <button onclick="fetch('./stream/stop')">Stop Livestream</button>
       <button onclick="location.href='./settings'">Settings / Wifi</button>

@@ -30,6 +30,15 @@ function checkForUpdates() {
     })
 }
 
+function requestUpdate() {
+  let response = confirm('This will update to the latest software version. The process will take several minutes, requires a stable internet connection, and will cause the Sonostreamer to automatically reboot. Do you wish to proceed?')
+  if (x == true) {
+    fetch('./system/update')
+  } else {
+    alert('The system will not be updated at this time')
+  }
+}
+
 connection.onopen = () => {
   console.log('Connection opened')
 }
