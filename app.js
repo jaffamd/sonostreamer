@@ -59,7 +59,7 @@ function apply(settings) {
 
   // Save server address and stream key
   console.log('Saving server settings...')
-  const serverSettings = '["-y","-hide_banner","-re","-f","video4linux2","-standard","NTSC","-i","/dev/video0","-c:v","h264_omx","-an","-f","flv","rtmp://' + settings['server-address'] + '/live/' + settings['stream-key'] + '"]'
+  const serverSettings = '["-hide_banner","-re","-f","v4l2","NTSC","-i","/dev/video0","-c:v","h264_omx","-an","-f","flv","rtmp://' + settings['server-address'] + '/live/' + settings['stream-key'] + '"]'
   // Concatonate all the settings and save them
   let newSettings = Object.assign(settings, { "stream-params": serverSettings })
   fs.writeFile('/sonostreamer/system_settings.json', JSON.stringify(newSettings), (err) => {
