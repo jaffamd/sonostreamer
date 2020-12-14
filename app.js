@@ -5,6 +5,7 @@ const execa = require('execa')
 const websocket = require('ws')
 const find = require('find-process')
 const fetch = require('node-fetch')
+const ping = require('ping')
 var systemSettings
 
 var status = {
@@ -130,10 +131,17 @@ function checkStreamStatus() {
     })
 }
 
+function checkConnection() {
+  ping.sys.probe('jaffamd.com', (isAlive) => {
+    status.internet = isAlive
+  })
+}
+
 // Timed function to send status of capture device and stream once per second via websocket
 function sendStatus(websocket) {
   checkCaptureDevice()
   checkStreamStatus()
+  checkConnection()
   //console.log('Status to send: ' + JSON.stringify(status))
   websocket.send(JSON.stringify(status))
   setTimeout(sendStatus, 1000, websocket)
@@ -273,7 +281,17 @@ app.get('/system/checkupdate', (req, res) => {
 })
 
 app.get('/system/update', (req, res) => {
-  exec('sudo ./systemupdate &')
+  exec('sudo ./systemupdate &', (error, stdout, stderr) => {
+    if (wsserver) {
+      if (error) {
+        wsserver.send(`Error: ${error}`)
+      }
+      if (stderr) {
+        wsserver.send(`STDERR: ${stderr}`)
+      }
+      wsserver.send(`STDOUT: ${stdout}`)
+    }
+  })
 })
 
 app.listen(80, () => console.log('Sonostreamer client started at ' + new Date().toISOString().replace('T', ' ').substr(0, 19)))
@@ -287,7 +305,7 @@ const wsserver = new websocket.Server({ port: 8080 })
 
 wsserver.on('connection', websocket => {
   console.log('Connected to client')
-  // When a client connects (e.g. a user opens the webpage), start running the sendStatus function once per second
+  // When a client connects (e.g. a user opens the webpage or connects via the mobile app), start running the sendStatus function once per second
   setTimeout(sendStatus, 1000, websocket)
   websocket.on('message', message => {
     //console.log(`Received message from client => ${message}`)

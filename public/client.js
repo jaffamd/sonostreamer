@@ -1,10 +1,13 @@
 const url = 'ws://pocuspi.local:8080'
 const connection = new WebSocket(url)
 
+const internetIndicator = document.getElementById('internet-status')
 const deviceIndicator = document.getElementById('capture-device-status')
 const streamIndicator = document.getElementById('stream-status')
 
 const updatebtn = document.getElementById('update-btn')
+
+// import Ping from 'ping.min.js'
 
 checkForUpdates()
 
@@ -31,8 +34,8 @@ function checkForUpdates() {
 }
 
 function requestUpdate() {
-  let response = confirm('This will update to the latest software version. The process will take several minutes, requires a stable internet connection, and will cause the Sonostreamer to automatically reboot. Do you wish to proceed?')
-  if (x == true) {
+  let response = confirm('This will update to the latest software version. The process will take several minutes, requires a stable internet connection, and will cause the Sonostreamer to automatically reboot. Do you wish to proceed?\n\nNOTE: Your settings will be reset, including your streaming target/server, so please make note of this before updating.')
+  if (response == true) {
     fetch('./system/update')
   } else {
     alert('The system will not be updated at this time')
@@ -50,6 +53,15 @@ connection.onerror = error => {
 
 connection.onmessage = message => {
   let status = JSON.parse(message.data)
+
+  if (status.internet == true) {
+    //console.log(status)
+    internetIndicator.style.backgroundColor = "#0cf249"
+  } else {
+    //console.log(status)
+    internetIndicator.style.backgroundColor = "gray"
+  }
+
   if (status.captureDevice == true) {
     //console.log(status)
     deviceIndicator.style.backgroundColor = "#0cf249"
