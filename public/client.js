@@ -1,15 +1,12 @@
-const url = 'ws://pocuspi.local:8080'
-const connection = new WebSocket(url)
-
-const internetIndicator = document.getElementById('internet-status')
-const deviceIndicator = document.getElementById('capture-device-status')
-const streamIndicator = document.getElementById('stream-status')
-
-const updatebtn = document.getElementById('update-btn')
-
-// import Ping from 'ping.min.js'
-
-checkForUpdates()
+fetch('../system/settings')
+  .then(response => response.json())
+  .then(data => {
+    let serveraddress = data['server-address']
+    let streamkey = data['stream-key']
+    let vidsrc = data['stream-key']
+    document.getElementById('stream-url').innerText = `Stream URL: rtmp://${serveraddress}/live/${streamkey}`
+    document.getElementById('video-source').innerText = `Video source: ${vidsrc}`
+  })
 
 function checkForUpdates() {
   updatebtn.classList = []
@@ -42,6 +39,15 @@ function requestUpdate() {
   }
 }
 
+// Websocket implementation for real-time status updates (internect connectivity, presence of capture device, streaming status)
+const url = 'ws://pocuspi.local:8080'
+const connection = new WebSocket(url)
+
+const internetIndicator = document.getElementById('internet-status')
+const deviceIndicator = document.getElementById('capture-device-status')
+const streamIndicator = document.getElementById('stream-status')
+
+const updatebtn = document.getElementById('update-btn')
 connection.onopen = () => {
   console.log('Connection opened')
 }
@@ -78,3 +84,6 @@ connection.onmessage = message => {
     streamIndicator.style.backgroundColor = "gray"
   }
 }
+
+// Check for software updates
+checkForUpdates()
