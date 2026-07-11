@@ -4,6 +4,16 @@ The Sonostreamer (aka "Streambox 2.0") is an open-source device designed to enab
 
 >NOTE: This is the first major update since the original release of the "Streambox" platform. The repository has now been split into this one for the Sonostreamer itself and a [separate repository for the server-side software](https://github.com/jaffamd/sonoserver) to process the live videostreams.
 
+## Low-latency streaming architecture
+
+As of v3.0, the Sonostreamer pushes an RTSP stream to a [MediaMTX](https://github.com/bluenviron/mediamtx) server instead of RTMP to nginx, cutting glass-to-glass latency from ~5-6 seconds to well under one second:
+
+- The Pi encodes with the hardware H.264 encoder (`h264_v4l2m2m`, 64-bit Raspberry Pi OS) with input probing disabled, so ffmpeg no longer buffers ~5 seconds of video before it starts sending
+- MediaMTX re-serves the stream as **WebRTC** for browsers (~200-500 ms latency) and **RTSP** for VLC
+- Remote viewers just open `http://<server>:8889/live/<stream-key>` in a browser — no software to install
+
+See the [sonoserver repository](https://github.com/jaffamd/sonoserver) for server installation instructions (a one-script MediaMTX setup).
+
 ## Feature Set
 - [x] Automatic hotspot when not connected to existing wifi
 - [x] Multiple Pi variants supported (tested on Raspberry Pi 4B / 3A+ / Zero W)

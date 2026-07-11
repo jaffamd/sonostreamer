@@ -3,8 +3,10 @@ fetch('../system/settings')
   .then(data => {
     let serveraddress = data['server-address']
     let streamkey = data['stream-key']
-    let vidsrc = data['stream-key']
-    document.getElementById('stream-url').innerText = `Stream URL: rtmp://${serveraddress}/live/${streamkey}`
+    let vidsrc = data['video-source']
+    document.getElementById('stream-url').innerHTML =
+      `Watch in browser (lowest latency): http://${serveraddress}:8889/live/${streamkey}<br>` +
+      `Watch in VLC: rtsp://${serveraddress}:8554/live/${streamkey}`
     document.getElementById('video-source').innerText = `Video source: ${vidsrc}`
   })
 

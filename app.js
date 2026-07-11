@@ -60,7 +60,28 @@ function apply(settings) {
 
   // Save server address and stream key
   console.log('Saving server settings...')
-  const serverSettings = '["-hide_banner","-re","-f","v4l2","-i","/dev/video0","-c:v","h264_omx","-an","-f","flv","rtmp://' + settings['server-address'] + '/live/' + settings['stream-key'] + '"]'
+  // Low-latency pipeline: no -re (live source), minimal input probing so ffmpeg
+  // starts emitting immediately (default ~5s of analysis becomes permanent lag),
+  // hardware encoding via h264_v4l2m2m (64-bit Pi OS), RTSP push to MediaMTX
+  const streamParams = [
+    '-hide_banner',
+    '-fflags', 'nobuffer',
+    '-flags', 'low_delay',
+    '-probesize', '32',
+    '-analyzeduration', '0',
+    '-use_wallclock_as_timestamps', '1',
+    '-f', 'v4l2',
+    '-i', '/dev/video0',
+    '-c:v', 'h264_v4l2m2m',
+    '-pix_fmt', 'yuv420p',
+    '-b:v', '2M',
+    '-g', '30',
+    '-an',
+    '-f', 'rtsp',
+    '-rtsp_transport', 'tcp',
+    'rtsp://' + settings['server-address'] + ':8554/live/' + settings['stream-key']
+  ]
+  const serverSettings = JSON.stringify(streamParams)
   // Concatonate all the settings and save them
   let newSettings = Object.assign(settings, { "stream-params": serverSettings })
   fs.writeFile('/sonostreamer/system_settings.json', JSON.stringify(newSettings), (err) => {
@@ -183,8 +204,13 @@ app.get('/stream/start',  (req, res) => {
 })
 
 async function startLivestream() {
-  const {stdout} = await execa('ffmpeg', JSON.parse(systemSettings['stream-params']))
-  console.log(stdout)
+  try {
+    const {stdout} = await execa('ffmpeg', JSON.parse(systemSettings['stream-params']))
+    console.log(stdout)
+  } catch (err) {
+    console.log('ffmpeg exited with an error:')
+    console.log(err.stderr || err.message)
+  }
 }
 
 // Stop livestream
