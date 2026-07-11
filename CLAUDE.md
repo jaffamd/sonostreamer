@@ -12,9 +12,10 @@ users — reliability and simplicity beat features.
 
 | Repo | Role |
 |------|------|
-| `jaffamd/sonostreamer` (this repo, public) | Pi-side client: capture, encode, push; local control web UI |
-| `jaffamd/sonocloud` (private) | The multi-tenant platform this device will pair with (see its CLAUDE.md) |
-| `jaffamd/sonoserver` (public, legacy) | Single-tenant MediaMTX server, the current 3.0.0 target; superseded by sonocloud |
+| `jaffamd/sonostreamer` (this repo, public) | Legacy Pi client: capture, encode, push; local control web UI |
+| `jaffamd/sonobox` (private) | TypeScript successor to this client, paired with SonoCloud — new device work happens there |
+| `jaffamd/sonocloud` (private) | The multi-tenant platform (see its CLAUDE.md) |
+| `jaffamd/sonoserver` (public, legacy) | Single-tenant MediaMTX server, this repo's 3.0.0 target; superseded by sonocloud |
 
 ## Non-negotiable constraints
 
@@ -52,18 +53,12 @@ users — reliability and simplicity beat features.
 - Legacy pattern to be aware of: control endpoints are side-effectful GETs, and `client.js`
   hardcodes `ws://pocuspi.local:8080` — fine to clean up, but don't break the deployed UI.
 
-## Next: SonoCloud integration (the main upcoming work)
+## Status: legacy / maintenance mode
 
-Replace the manual server-address/stream-key flow with pairing against the SonoCloud API:
-
-- Store per-device credentials (device id + secret from SonoCloud, shown once at creation) in
-  device settings.
-- Start/stop should create/end a **stream session** via the SonoCloud API, then publish with
-  RTSP basic auth: `rtsp://<device-id>:<device-secret>@<host>:8554/<session-path>` — the path
-  comes from the API per session, it is no longer a fixed stream key.
-- Keep a "legacy mode" (plain MediaMTX / sonoserver target, current behavior) so existing
-  deployments keep working; make the mode explicit in settings.
-- Longer-term: session start/stop from the SonoCloud web/mobile app instead of the Pi's page.
+The SonoCloud-paired successor client lives in the private `jaffamd/sonobox` repo — new device
+features go there. This repo continues to serve deployed devices that target sonoserver /
+plain MediaMTX: keep it working, fix bugs, but avoid new feature surface. Remember that pushes
+to master here are effectively releases to deployed devices (see constraint 3 above).
 
 ## Verification
 
