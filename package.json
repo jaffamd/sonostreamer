@@ -12,7 +12,7 @@
     "execa": "^4.0.2",
     "express": "^4.17.1",
     "find-process": "^1.4.3",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "ping": "^0.3.0",
     "ws": "^7.3.0"
   }
